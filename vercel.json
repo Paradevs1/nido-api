@@ -1,0 +1,45 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "src/app.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "src/app.ts"
+        }
+    ],
+    "crons": [
+        {
+            "path": "/api/jobs/run-expired-campaigns",
+            "schedule": "*/1 * * * *"
+        },
+        {
+            "path": "/api/jobs/run-get-info-post-x",
+            "schedule": "*/1 * * * *"
+        },
+        {
+            "path": "/api/jobs/run-get-clicks",
+            "schedule": "*/5 * * * *"
+        },
+        {
+            "path": "/api/jobs/run-update-twitter-followers",
+            "schedule": "0 3 * * 6"
+        },
+        {
+            "path": "/api/jobs/run-get-metrics-submissions",
+            "schedule": "*/1 * * * *"
+        },
+        {
+            "path": "/api/jobs/run-auto-pay-waiting-payment",
+            "schedule": "1 0 * * *"
+        },
+        {
+            "path": "/api/jobs/run-cleanup-inactive-hosts",
+            "schedule": "0 0 * * 6"
+        }
+    ]
+}
