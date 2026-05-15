@@ -6,6 +6,8 @@ import {
   Transaction,
 } from '@stellar/stellar-sdk';
 
+const FEE_BUMP_FEE = '1000'; // 10x base fee, treasury pays
+
 import { stellarConfig, stellarServer } from '../config/stellar';
 import { StellarUtil } from '../utils/stellar.util';
 import {
@@ -200,15 +202,24 @@ export class StellarService {
     }
 
     const arbiterKeypair = StellarUtil.getArbiterKeypair();
+    const treasuryKeypair = StellarUtil.getTreasuryKeypair();
 
-    // Deserialize the host-signed transaction and add arbiter signature
-    const tx = TransactionBuilder.fromXDR(
+    const innerTx = TransactionBuilder.fromXDR(
       hostSignedXDR,
       stellarConfig.networkPassphrase
     ) as Transaction;
-    tx.sign(arbiterKeypair);
+    innerTx.sign(arbiterKeypair);
 
-    const result = await stellarServer.submitTransaction(tx);
+    // FeeBump: treasury pays the fee so escrow account needs zero XLM
+    const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(
+      treasuryKeypair,
+      FEE_BUMP_FEE,
+      innerTx,
+      stellarConfig.networkPassphrase
+    );
+    feeBumpTx.sign(treasuryKeypair);
+
+    const result = await stellarServer.submitTransaction(feeBumpTx);
 
     await StellarEscrowModel.updateStatus(jobId, EscrowStatus.COMPLETED, {
       release_tx_hash: result.hash,
@@ -248,14 +259,24 @@ export class StellarService {
     }
 
     const arbiterKeypair = StellarUtil.getArbiterKeypair();
+    const treasuryKeypair = StellarUtil.getTreasuryKeypair();
 
-    const tx = TransactionBuilder.fromXDR(
+    const innerTx = TransactionBuilder.fromXDR(
       hostSignedXDR,
       stellarConfig.networkPassphrase
     ) as Transaction;
-    tx.sign(arbiterKeypair);
+    innerTx.sign(arbiterKeypair);
 
-    const result = await stellarServer.submitTransaction(tx);
+    // FeeBump: treasury pays the fee so escrow account needs zero XLM
+    const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(
+      treasuryKeypair,
+      FEE_BUMP_FEE,
+      innerTx,
+      stellarConfig.networkPassphrase
+    );
+    feeBumpTx.sign(treasuryKeypair);
+
+    const result = await stellarServer.submitTransaction(feeBumpTx);
 
     await StellarEscrowModel.updateStatus(jobId, EscrowStatus.REFUNDED, {
       refund_close_tx_hash: result.hash,
