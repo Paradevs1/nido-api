@@ -357,6 +357,62 @@ export class StellarService {
     return 'preauth';
   }
 
+  // ─── Sprint 3: Cron — auto-refund expired escrows ────────────────────────────
+
+  async runExpiredEscrows(): Promise<{ processed: number; failed: number; results: Array<{ jobId: string; status: 'refunded' | 'error'; txHash?: string; error?: string }> }> {
+    const expired = await StellarEscrowModel.findExpiredEscrows();
+    const results: Array<{ jobId: string; status: 'refunded' | 'error'; txHash?: string; error?: string }> = [];
+    let processed = 0;
+    let failed = 0;
+
+    for (const escrow of expired) {
+      try {
+        if (!escrow.refund_tx_xdr) throw new Error('refund_tx_xdr missing');
+        if (!escrow.secret_key_encrypted) throw new Error('escrow secret key missing');
+
+        const arbiterKeypair = StellarUtil.getArbiterKeypair();
+        const treasuryKeypair = StellarUtil.getTreasuryKeypair();
+        const escrowSecret = Buffer.from(escrow.secret_key_encrypted, 'base64').toString('utf8');
+        const escrowKeypair = Keypair.fromSecret(escrowSecret);
+
+        const innerTx = TransactionBuilder.fromXDR(
+          escrow.refund_tx_xdr,
+          stellarConfig.networkPassphrase
+        ) as Transaction;
+
+        // arbiter (w=1) + escrow master (w=1) = medThreshold=2 met
+        innerTx.sign(arbiterKeypair);
+        innerTx.sign(escrowKeypair);
+
+        const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(
+          treasuryKeypair,
+          FEE_BUMP_FEE,
+          innerTx,
+          stellarConfig.networkPassphrase
+        );
+        feeBumpTx.sign(treasuryKeypair);
+
+        const result = await stellarServer.submitTransaction(feeBumpTx);
+
+        await StellarEscrowModel.updateStatus(escrow.job_id, EscrowStatus.REFUNDED, {
+          refund_close_tx_hash: result.hash,
+        });
+
+        results.push({ jobId: escrow.job_id, status: 'refunded', txHash: result.hash });
+        processed++;
+      } catch (err: any) {
+        const errMsg = err?.response?.data?.extras?.result_codes
+          ? JSON.stringify(err.response.data.extras.result_codes)
+          : err.message;
+        console.error(`[cron] Failed to auto-refund escrow ${escrow.job_id}: ${errMsg}`);
+        results.push({ jobId: escrow.job_id, status: 'error', error: errMsg });
+        failed++;
+      }
+    }
+
+    return { processed, failed, results };
+  }
+
   // ─── Sprint 3: Dispute Flow ───────────────────────────────────────────────────
 
   async openDispute(dto: OpenDisputeDto): Promise<void> {

@@ -21,6 +21,8 @@ router.post('/run-auto-pay-waiting-payment', jobController.runAutoPayWaitingPaym
 router.get('/run-auto-pay-waiting-payment', jobController.runAutoPayWaitingPaymentCampaignsJob);
 router.post('/run-cleanup-inactive-hosts', jobController.runCleanupInactiveHosts);
 router.get('/run-cleanup-inactive-hosts', jobController.runCleanupInactiveHosts);
+router.post('/run-expired-stellar-escrows', jobController.runExpiredStellarEscrows);
+router.get('/run-expired-stellar-escrows', jobController.runExpiredStellarEscrows);
 
 export default router;
 

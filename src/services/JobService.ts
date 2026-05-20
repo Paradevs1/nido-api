@@ -13,6 +13,7 @@ import { PaymentService } from './PaymentService';
 import { buildFeedbackRank, buildDateSubmitRank } from '../utils/generateRanksJob';
 import { JobLockModel } from '../models/JobLock';
 import { API_DELAY_TWITTER_MS, API_DELAY_INSTAGRAM_MS, API_DELAY_TIKTOK_MS, API_DELAY_YOUTUBE_MS, API_DELAY_FOLLOWERS_MS } from '../utils/consts';
+import { StellarService } from './StellarService';
 
 export class JobService {
   /**
@@ -746,5 +747,45 @@ export class JobService {
     }
 
     return { processed: participants.length, updated };
+  }
+
+  public async runExpiredStellarEscrowsJob(): Promise<{
+    success: boolean;
+    processed: number;
+    failed: number;
+    results: Array<{ jobId: string; status: 'refunded' | 'error'; txHash?: string; error?: string }>;
+    timestamp: Date;
+    message: string;
+  }> {
+    return this.withLock('expired-stellar-escrows', 5 * 60 * 1000, async () => {
+      try {
+        const stellarService = new StellarService();
+        const { processed, failed, results } = await stellarService.runExpiredEscrows();
+        return {
+          success: true,
+          processed,
+          failed,
+          results,
+          timestamp: new Date(),
+          message: `Job completed. ${processed} escrow(s) refunded, ${failed} failed.`,
+        };
+      } catch (error: any) {
+        return {
+          success: false,
+          processed: 0,
+          failed: 0,
+          results: [],
+          timestamp: new Date(),
+          message: `Job execution error: ${error.message}`,
+        };
+      }
+    }, {
+      success: false,
+      processed: 0,
+      failed: 0,
+      results: [],
+      timestamp: new Date(),
+      message: 'Job skipped — already running.',
+    });
   }
 }
