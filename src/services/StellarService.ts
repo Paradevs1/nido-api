@@ -323,9 +323,12 @@ export class StellarService {
 
     const dto: EscrowStatusDto = {
       publicKey: escrow.escrow_public_key,
+      hostPublicKey: escrow.host_public_key,
+      talentPublicKey: escrow.talent_public_key,
       jobId: escrow.job_id,
       status: escrow.status,
       balance,
+      lockedAmount: escrow.amount,
       signers,
       thresholds,
       createdAt: escrow.created_at,

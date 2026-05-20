@@ -16,7 +16,7 @@ const DEMO_EMAIL    = 'demo-host@nido.demo';
 async function main() {
   const client = new MongoClient(MONGO_URI);
   await client.connect();
-  const db = client.db();
+  const db = client.db('bounties');
 
   // ── 1. Plano BASIC ───────────────────────────────────────────────────────────
   let plan = await db.collection('plans').findOne({ name: 'BASIC' });

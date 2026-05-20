@@ -18,9 +18,12 @@ export interface RefundEscrowDto {
 
 export interface EscrowStatusDto {
   publicKey: string;
+  hostPublicKey: string;
+  talentPublicKey: string;
   jobId: string;
   status: EscrowStatus;
   balance: string;
+  lockedAmount: string;
   signers: SignerDto[];
   thresholds: ThresholdDto;
   deadline?: number;

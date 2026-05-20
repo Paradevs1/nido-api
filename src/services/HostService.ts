@@ -432,7 +432,16 @@ export class HostService {
         username: kolUsersMap.get(kol.userId)?.username ?? ''
       }));
     }
-    
+
+    let talent_stellar_wallet: string | null = null;
+    if (campaign.list_kols && campaign.list_kols.length === 1) {
+      const firstKol = campaign.list_kols[0];
+      if (firstKol) {
+        const talentUser = await UserModel.findById(firstKol.userId);
+        talent_stellar_wallet = talentUser?.wallet_stellar ?? null;
+      }
+    }
+
     return {
       id: campaign._id!.toString(),
       host_id: campaign.host_id,
@@ -482,6 +491,7 @@ export class HostService {
       submissions_kols,
       submissions_images,
       list_kols,
+      talent_stellar_wallet,
       ...(user_amount !== undefined && { user_amount }),
       ...(campaign.community_id && { community_id: campaign.community_id })
     };
