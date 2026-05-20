@@ -27,6 +27,13 @@ export interface IStellarEscrow {
   stellar_tx_hash?: string;
   release_tx_hash?: string;
   refund_close_tx_hash?: string;
+  // Dispute fields
+  dispute_reason?: string;
+  dispute_initiator?: 'HOST' | 'TALENT';
+  dispute_opened_at?: Date;
+  dispute_winner?: 'HOST' | 'TALENT';
+  dispute_resolution_xdr?: string;
+  dispute_closed_tx_hash?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -89,6 +96,14 @@ export class StellarEscrowModel {
       { $set: { status, updated_at: new Date(), ...extra } }
     );
     return result.modifiedCount > 0;
+  }
+
+  static async findDisputed(): Promise<IStellarEscrow[]> {
+    const collection = await this.getCollection();
+    return await collection
+      .find({ status: EscrowStatus.DISPUTED })
+      .sort({ dispute_opened_at: -1 })
+      .toArray();
   }
 
   static async findExpiredEscrows(): Promise<IStellarEscrow[]> {

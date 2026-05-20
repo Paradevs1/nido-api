@@ -4,6 +4,7 @@ import {
   Operation,
   BASE_FEE,
   Transaction,
+  Asset,
 } from '@stellar/stellar-sdk';
 
 const FEE_BUMP_FEE = '1000'; // 10x base fee, treasury pays
@@ -16,6 +17,9 @@ import {
   EscrowStatusDto,
   EscrowStatus,
   SignerDto,
+  OpenDisputeDto,
+  ResolveDisputeDto,
+  DisputeResolutionDto,
 } from '../dtos/stellar.dto';
 import { StellarEscrowModel, IStellarEscrow } from '../models/StellarEscrow';
 
@@ -314,20 +318,33 @@ export class StellarService {
       // Account may be merged/closed after release/refund — use DB data
     }
 
-    return {
+    const isFunded = escrow.status === EscrowStatus.FUNDED;
+    const isDisputed = escrow.status === EscrowStatus.DISPUTED;
+
+    const dto: EscrowStatusDto = {
       publicKey: escrow.escrow_public_key,
       jobId: escrow.job_id,
       status: escrow.status,
       balance,
       signers,
       thresholds,
-      deadline: escrow.deadline,
-      paymentTxXDR: escrow.status === EscrowStatus.FUNDED ? escrow.payment_tx_xdr : undefined,
-      refundTxXDR: escrow.status === EscrowStatus.FUNDED ? escrow.refund_tx_xdr : undefined,
-      releaseTxHash: escrow.release_tx_hash,
-      refundCloseTxHash: escrow.refund_close_tx_hash,
       createdAt: escrow.created_at,
     };
+
+    if (escrow.deadline !== undefined) dto.deadline = escrow.deadline;
+    if (isFunded && escrow.payment_tx_xdr) dto.paymentTxXDR = escrow.payment_tx_xdr;
+    if (isFunded && escrow.refund_tx_xdr) dto.refundTxXDR = escrow.refund_tx_xdr;
+    if (escrow.release_tx_hash) dto.releaseTxHash = escrow.release_tx_hash;
+    if (escrow.refund_close_tx_hash) dto.refundCloseTxHash = escrow.refund_close_tx_hash;
+    if (escrow.dispute_reason) dto.disputeReason = escrow.dispute_reason;
+    if (escrow.dispute_initiator) dto.disputeInitiator = escrow.dispute_initiator;
+    if (escrow.dispute_winner) dto.disputeWinner = escrow.dispute_winner;
+    if (isDisputed && escrow.dispute_winner && escrow.dispute_resolution_xdr) {
+      dto.disputeResolutionXDR = escrow.dispute_resolution_xdr;
+    }
+    if (escrow.dispute_closed_tx_hash) dto.disputeClosedTxHash = escrow.dispute_closed_tx_hash;
+
+    return dto;
   }
 
   private determineSignerType(
@@ -338,5 +355,118 @@ export class StellarService {
     if (key === escrow.talent_public_key) return 'talent';
     if (key === escrow.arbiter_public_key) return 'arbiter';
     return 'preauth';
+  }
+
+  // ─── Sprint 3: Dispute Flow ───────────────────────────────────────────────────
+
+  async openDispute(dto: OpenDisputeDto): Promise<void> {
+    const escrow = await StellarEscrowModel.findByJobId(dto.jobId);
+    if (!escrow) throw new Error(`Escrow not found for job ${dto.jobId}`);
+    if (escrow.status !== EscrowStatus.FUNDED) {
+      throw new Error(`Cannot open dispute: escrow status is ${escrow.status}`);
+    }
+
+    await StellarEscrowModel.updateStatus(dto.jobId, EscrowStatus.DISPUTED, {
+      dispute_reason: dto.reason,
+      dispute_initiator: dto.initiator,
+      dispute_opened_at: new Date(),
+    });
+  }
+
+  async listDisputes(): Promise<IStellarEscrow[]> {
+    return StellarEscrowModel.findDisputed();
+  }
+
+  async resolveDispute(dto: ResolveDisputeDto): Promise<DisputeResolutionDto> {
+    const escrow = await StellarEscrowModel.findByJobId(dto.jobId);
+    if (!escrow) throw new Error(`Escrow not found for job ${dto.jobId}`);
+    if (escrow.status !== EscrowStatus.DISPUTED) {
+      throw new Error(`Cannot resolve: escrow status is ${escrow.status}`);
+    }
+
+    const arbiterKeypair = StellarUtil.getArbiterKeypair();
+    const usdcAsset = StellarUtil.getUSDCAsset();
+
+    let innerTx: Transaction;
+    let winnerPublicKey: string;
+
+    if (dto.winner === 'TALENT') {
+      // Use existing payment_xdr (escrow → talent), arbiter adds sig weight=1
+      if (!escrow.payment_tx_xdr) throw new Error('Payment XDR not available');
+      innerTx = TransactionBuilder.fromXDR(
+        escrow.payment_tx_xdr,
+        stellarConfig.networkPassphrase
+      ) as Transaction;
+      winnerPublicKey = escrow.talent_public_key;
+    } else {
+      // winner = HOST: build fresh payment TX to host (no TimeBound restriction)
+      // This works before or after deadline, unlike the pre-auth refund_xdr
+      const escrowAccount = await StellarUtil.loadAccount(escrow.escrow_public_key);
+      innerTx = new TransactionBuilder(escrowAccount, {
+        fee: BASE_FEE,
+        networkPassphrase: stellarConfig.networkPassphrase,
+      })
+        .addOperation(
+          Operation.payment({
+            destination: escrow.host_public_key,
+            asset: usdcAsset,
+            amount: escrow.amount,
+          })
+        )
+        .setTimeout(stellarConfig.defaults.timeout)
+        .build();
+      winnerPublicKey = escrow.host_public_key;
+    }
+
+    // Arbiter signs — contributes weight=1 toward medThreshold=2
+    innerTx.sign(arbiterKeypair);
+    const disputeResolutionXDR = innerTx.toXDR();
+
+    // Persist: winner + arbiter-signed XDR ready for winner to countersign
+    await StellarEscrowModel.updateStatus(dto.jobId, EscrowStatus.DISPUTED, {
+      dispute_winner: dto.winner,
+      dispute_resolution_xdr: disputeResolutionXDR,
+    });
+
+    return { disputeResolutionXDR, winnerPublicKey, winner: dto.winner };
+  }
+
+  async claimDispute(jobId: string, winnerSignedXDR: string): Promise<string> {
+    const escrow = await StellarEscrowModel.findByJobId(jobId);
+    if (!escrow) throw new Error(`Escrow not found for job ${jobId}`);
+    if (escrow.status !== EscrowStatus.DISPUTED) {
+      throw new Error(`Cannot claim: escrow status is ${escrow.status}`);
+    }
+    if (!escrow.dispute_winner) {
+      throw new Error('Dispute has not been resolved by arbiter yet');
+    }
+
+    const treasuryKeypair = StellarUtil.getTreasuryKeypair();
+
+    // winnerSignedXDR already has arbiter sig from resolveDispute + winner sig added
+    const innerTx = TransactionBuilder.fromXDR(
+      winnerSignedXDR,
+      stellarConfig.networkPassphrase
+    ) as Transaction;
+
+    // FeeBump: treasury pays fee (escrow has 0 XLM)
+    const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(
+      treasuryKeypair,
+      FEE_BUMP_FEE,
+      innerTx,
+      stellarConfig.networkPassphrase
+    );
+    feeBumpTx.sign(treasuryKeypair);
+
+    const result = await stellarServer.submitTransaction(feeBumpTx);
+
+    const finalStatus =
+      escrow.dispute_winner === 'TALENT' ? EscrowStatus.COMPLETED : EscrowStatus.REFUNDED;
+
+    await StellarEscrowModel.updateStatus(jobId, finalStatus, {
+      dispute_closed_tx_hash: result.hash,
+    });
+
+    return result.hash;
   }
 }

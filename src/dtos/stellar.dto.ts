@@ -23,12 +23,18 @@ export interface EscrowStatusDto {
   balance: string;
   signers: SignerDto[];
   thresholds: ThresholdDto;
-  deadline: number | undefined;
-  paymentTxXDR: string | undefined;
-  refundTxXDR: string | undefined;
-  releaseTxHash: string | undefined;
-  refundCloseTxHash: string | undefined;
+  deadline?: number;
+  paymentTxXDR?: string;
+  refundTxXDR?: string;
+  releaseTxHash?: string;
+  refundCloseTxHash?: string;
   createdAt: Date;
+  // Dispute
+  disputeReason?: string;
+  disputeInitiator?: 'HOST' | 'TALENT';
+  disputeWinner?: 'HOST' | 'TALENT';
+  disputeResolutionXDR?: string;
+  disputeClosedTxHash?: string;
 }
 
 export enum EscrowStatus {
@@ -70,4 +76,28 @@ export interface CreateEscrowResponseDto {
     preAuthTxs: PreAuthTxDto;
   };
   message: string;
+}
+
+// ─── Dispute DTOs ──────────────────────────────────────────────────────────────
+
+export interface OpenDisputeDto {
+  jobId: string;
+  reason: string;
+  initiator: 'HOST' | 'TALENT';
+}
+
+export interface ResolveDisputeDto {
+  jobId: string;
+  winner: 'HOST' | 'TALENT';
+}
+
+export interface ClaimDisputeDto {
+  jobId: string;
+  winnerSignedXDR: string;
+}
+
+export interface DisputeResolutionDto {
+  disputeResolutionXDR: string;
+  winnerPublicKey: string;
+  winner: 'HOST' | 'TALENT';
 }

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { StellarController } from '../controllers/StellarController';
+import { authGuard, adminGuard } from '../guards/auth.guard';
 
 const router = Router();
 const stellar = new StellarController();
@@ -17,5 +18,14 @@ router.post('/escrow/refund', stellar.refundEscrow.bind(stellar));
 
 // Sprint 1+2 — Real-time status from Horizon
 router.get('/escrow/:jobId/status', stellar.getEscrowStatus.bind(stellar));
+
+// Sprint 3 — Dispute flow (any authenticated user)
+router.post('/dispute', authGuard, stellar.openDispute.bind(stellar));
+router.get('/escrow/:jobId/dispute-xdr', authGuard, stellar.getDisputeXDR.bind(stellar));
+router.post('/dispute/claim', authGuard, stellar.claimDispute.bind(stellar));
+
+// Sprint 3 — Admin arbitration (ADMIN only)
+router.get('/admin/disputes', adminGuard, stellar.listDisputes.bind(stellar));
+router.post('/admin/resolve', adminGuard, stellar.resolveDispute.bind(stellar));
 
 export default router;
