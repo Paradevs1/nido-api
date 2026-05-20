@@ -429,8 +429,9 @@ export class StellarService {
     });
   }
 
-  async listDisputes(): Promise<IStellarEscrow[]> {
-    return StellarEscrowModel.findDisputed();
+  async listDisputes(): Promise<EscrowStatusDto[]> {
+    const escrows = await StellarEscrowModel.findDisputed();
+    return Promise.all(escrows.map((e) => this.getEscrowStatus(e.job_id)));
   }
 
   async resolveDispute(dto: ResolveDisputeDto): Promise<DisputeResolutionDto> {
