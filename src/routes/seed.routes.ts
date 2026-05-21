@@ -16,18 +16,84 @@ router.post('/demo-campaign', async (req: Request, res: Response) => {
     await connectDB();
     const db = await getBountiesDB();
     const campaigns = db.collection('campaigns');
+    const users = db.collection('users');
 
-    const DEMO_ID = new ObjectId('6b0e1cadead105ec638de777');
-    const DEMO_HOST_ID = '6a068e6ab237b9a480acd739';
-
-    await campaigns.deleteOne({ _id: DEMO_ID });
+    const DEMO_CAMPAIGN_ID = new ObjectId('6b0e1cadead105ec638de777');
+    const DEMO_HOST_ID = new ObjectId('6a068e6ab237b9a480acd739');
+    const DEMO_TALENT_ID = new ObjectId('000000000000000000000002');
+    const DEMO_ADMIN_ID = new ObjectId('000000000000000000000001');
 
     const now = new Date();
     const endDate = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000);
 
+    // Upsert demo users
+    await users.updateOne(
+      { _id: DEMO_HOST_ID },
+      {
+        $setOnInsert: {
+          _id: DEMO_HOST_ID,
+          username: 'nido-demo',
+          user_type: 'HOST',
+          email: 'demo-host@nido.demo',
+          email_verified: true,
+          isActive: true,
+          status: 'active',
+          active_account_host: true,
+          plan_id: 'BASIC',
+          campaigns_created: 1,
+          registerCompleted: true,
+          created_at: now,
+          updated_at: now,
+        },
+      },
+      { upsert: true }
+    );
+
+    await users.updateOne(
+      { _id: DEMO_TALENT_ID },
+      {
+        $setOnInsert: {
+          _id: DEMO_TALENT_ID,
+          username: 'demo-talent',
+          user_type: 'CREATOR',
+          email: 'demo-talent@nido.demo',
+          email_verified: true,
+          isActive: true,
+          status: 'active',
+          campaigns_created: 0,
+          first_login: false,
+          created_at: now,
+          updated_at: now,
+        },
+      },
+      { upsert: true }
+    );
+
+    await users.updateOne(
+      { _id: DEMO_ADMIN_ID },
+      {
+        $setOnInsert: {
+          _id: DEMO_ADMIN_ID,
+          username: 'admin',
+          user_type: 'ADMIN',
+          email: 'admin@nido.demo',
+          email_verified: true,
+          isActive: true,
+          status: 'active',
+          campaigns_created: 0,
+          registerCompleted: true,
+          created_at: now,
+          updated_at: now,
+        },
+      },
+      { upsert: true }
+    );
+
+    // Recreate demo campaign
+    await campaigns.deleteOne({ _id: DEMO_CAMPAIGN_ID });
     await campaigns.insertOne({
-      _id: DEMO_ID,
-      host_id: DEMO_HOST_ID,
+      _id: DEMO_CAMPAIGN_ID,
+      host_id: DEMO_HOST_ID.toString(),
       title: 'NIDO Demo — Escrow Stellar (37 Graus)',
       about_project: 'Campanha demo do hackathon 37 Graus para testar o fluxo completo de escrow Stellar: criação multisig 2-de-3, depósito USDC testnet e liberação via Freighter.',
       what_we_need: 'Conecte o Freighter, crie o escrow, assine a liberação e acompanhe no Stellar Expert.',
@@ -59,7 +125,11 @@ router.post('/demo-campaign', async (req: Request, res: Response) => {
       updated_at: now,
     });
 
-    return res.json({ success: true, campaignId: DEMO_ID.toString() });
+    return res.json({
+      success: true,
+      campaignId: DEMO_CAMPAIGN_ID.toString(),
+      users: ['host', 'talent', 'admin'],
+    });
   } catch (e: any) {
     return res.status(500).json({ message: e.message });
   }
