@@ -164,6 +164,7 @@ import planRoutes from './routes/plan.routes';
 import communityRoutes from './routes/community.routes';
 import notificationRoutes from './routes/notification.routes';
 import stellarRoutes from './routes/stellar.routes';
+import seedRoutes from './routes/seed.routes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -176,6 +177,7 @@ app.use('/api/waitlist', waitlistRoutes);
 app.use('/api/communities', communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/stellar', stellarRoutes);
+if (process.env['SEED_SECRET']) app.use('/api/seed', seedRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   const response: any = {
