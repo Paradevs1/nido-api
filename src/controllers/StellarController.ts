@@ -57,20 +57,24 @@ export class StellarController {
   async getPaymentXDR(req: Request, res: Response): Promise<Response> {
     try {
       const jobId = req.params['jobId']!;
-      const result = await this.stellarService.getPaymentXDR(jobId);
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const result = await this.stellarService.getPaymentXDR(jobId, callerWallet);
       return res.status(200).json({ success: true, data: result });
     } catch (error: any) {
-      return res.status(400).json({ success: false, message: error.message });
+      const status = error.message?.includes('Unauthorized') ? 403 : 400;
+      return res.status(status).json({ success: false, message: error.message });
     }
   }
 
   async getRefundXDR(req: Request, res: Response): Promise<Response> {
     try {
       const jobId = req.params['jobId']!;
-      const result = await this.stellarService.getRefundXDR(jobId);
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const result = await this.stellarService.getRefundXDR(jobId, callerWallet);
       return res.status(200).json({ success: true, data: result });
     } catch (error: any) {
-      return res.status(400).json({ success: false, message: error.message });
+      const status = error.message?.includes('Unauthorized') ? 403 : 400;
+      return res.status(status).json({ success: false, message: error.message });
     }
   }
 
@@ -87,7 +91,8 @@ export class StellarController {
         });
       }
 
-      const txHash = await this.stellarService.releasePayment(dto.jobId, dto.hostSignedXDR);
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const txHash = await this.stellarService.releasePayment(dto.jobId, dto.hostSignedXDR, callerWallet);
 
       return res.status(200).json({
         success: true,
@@ -113,7 +118,8 @@ export class StellarController {
         });
       }
 
-      const txHash = await this.stellarService.refundEscrow(dto.jobId, dto.hostSignedXDR);
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const txHash = await this.stellarService.refundEscrow(dto.jobId, dto.hostSignedXDR, callerWallet);
 
       return res.status(200).json({
         success: true,
@@ -153,7 +159,8 @@ export class StellarController {
       if (!['HOST', 'TALENT'].includes(dto.initiator)) {
         return res.status(400).json({ success: false, message: 'initiator must be HOST or TALENT' });
       }
-      await this.stellarService.openDispute(dto);
+      const callerWallet = ((req as any).user?.wallet_stellar as string | undefined) ?? '';
+      await this.stellarService.openDispute({ ...dto, callerWallet });
       return res.status(200).json({ success: true, message: 'Dispute opened successfully' });
     } catch (error: any) {
       console.error('[StellarController] openDispute error:', error.message);

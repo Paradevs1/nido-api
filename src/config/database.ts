@@ -151,6 +151,12 @@ const ensureIndexes = async () => {
       // Notification indexes
       db.collection('notifications').createIndex({ recipient_id: 1, created_at: -1 }),
       db.collection('notifications').createIndex({ recipient_id: 1, read: 1 }),
+
+      // Stellar Escrow indexes — job_id unique prevents duplicate escrows and race conditions
+      db.collection('stellar_escrows').createIndex({ job_id: 1 }, { unique: true, name: 'job_id_unique' }),
+      db.collection('stellar_escrows').createIndex({ host_public_key: 1 }),
+      db.collection('stellar_escrows').createIndex({ talent_public_key: 1 }),
+      db.collection('stellar_escrows').createIndex({ status: 1 }),
     ]);
 
     indexesCreated = true;

@@ -6,6 +6,7 @@ import {
   Transaction,
   Asset,
 } from '@stellar/stellar-sdk';
+import { encryptSecret, decryptSecret } from '../utils/stellar-crypto';
 
 const FEE_BUMP_FEE = '1000'; // 10x base fee, treasury pays
 
@@ -27,11 +28,24 @@ export class StellarService {
   // ─── Sprint 1: Create Escrow ─────────────────────────────────────────────────
 
   async createEscrow(dto: CreateEscrowDto): Promise<IStellarEscrow> {
+    const existing = await StellarEscrowModel.findByJobId(dto.jobId);
+    if (existing) throw new Error(`Escrow already exists for job ${dto.jobId}`);
+
     if (!StellarUtil.isValidPublicKey(dto.hostPublicKey)) {
       throw new Error('Invalid host public key');
     }
     if (!StellarUtil.isValidPublicKey(dto.talentPublicKey)) {
       throw new Error('Invalid talent public key');
+    }
+    if (dto.hostPublicKey === dto.talentPublicKey) {
+      throw new Error('hostPublicKey and talentPublicKey must be different accounts');
+    }
+
+    const treasuryPublicKey = process.env['STELLAR_TREASURY_PUBLIC_KEY'] || '';
+    const arbiterPublicKey = process.env['STELLAR_ARBITER_PUBLIC_KEY'] || '';
+    for (const [label, key] of [['hostPublicKey', dto.hostPublicKey], ['talentPublicKey', dto.talentPublicKey]]) {
+      if (key === treasuryPublicKey) throw new Error(`${label} cannot be the treasury account`);
+      if (key === arbiterPublicKey) throw new Error(`${label} cannot be the arbiter account`);
     }
 
     const escrowKeypair = StellarUtil.generateKeypair();
@@ -122,7 +136,7 @@ export class StellarService {
       const escrow = await StellarEscrowModel.create({
         job_id: dto.jobId,
         escrow_public_key: escrowKeypair.publicKey(),
-        secret_key_encrypted: Buffer.from(escrowKeypair.secret()).toString('base64'),
+        secret_key_encrypted: encryptSecret(escrowKeypair.secret()),
         host_public_key: dto.hostPublicKey,
         talent_public_key: dto.talentPublicKey,
         arbiter_public_key: arbiterKeypair.publicKey(),
@@ -188,9 +202,12 @@ export class StellarService {
 
   // ─── Sprint 2: Release Payment ────────────────────────────────────────────────
 
-  async getPaymentXDR(jobId: string): Promise<{ paymentTxXDR: string; escrowPublicKey: string }> {
+  async getPaymentXDR(jobId: string, callerWallet?: string): Promise<{ paymentTxXDR: string; escrowPublicKey: string }> {
     const escrow = await StellarEscrowModel.findByJobId(jobId);
     if (!escrow) throw new Error(`Escrow not found for job ${jobId}`);
+    if (callerWallet && callerWallet !== escrow.host_public_key) {
+      throw new Error('Unauthorized: only the escrow host can fetch the payment XDR');
+    }
     if (escrow.status !== EscrowStatus.FUNDED) {
       throw new Error(`Escrow is not in FUNDED status (current: ${escrow.status})`);
     }
@@ -198,9 +215,12 @@ export class StellarService {
     return { paymentTxXDR: escrow.payment_tx_xdr, escrowPublicKey: escrow.escrow_public_key };
   }
 
-  async releasePayment(jobId: string, hostSignedXDR: string): Promise<string> {
+  async releasePayment(jobId: string, hostSignedXDR: string, callerWallet?: string): Promise<string> {
     const escrow = await StellarEscrowModel.findByJobId(jobId);
     if (!escrow) throw new Error(`Escrow not found for job ${jobId}`);
+    if (callerWallet && callerWallet !== escrow.host_public_key) {
+      throw new Error('Unauthorized: only the escrow host can release payment');
+    }
     if (escrow.status !== EscrowStatus.FUNDED) {
       throw new Error(`Cannot release: escrow status is ${escrow.status}`);
     }
@@ -212,6 +232,13 @@ export class StellarService {
       hostSignedXDR,
       stellarConfig.networkPassphrase
     ) as Transaction;
+
+    // Guard: submitted XDR must match the server-generated payment transaction
+    const submittedHash = innerTx.hash().toString('hex');
+    if (submittedHash !== escrow.payment_tx_hash) {
+      throw new Error('XDR mismatch: submitted transaction does not match the stored payment transaction');
+    }
+
     innerTx.sign(arbiterKeypair);
 
     // FeeBump: treasury pays the fee so escrow account needs zero XLM
@@ -234,9 +261,12 @@ export class StellarService {
 
   // ─── Sprint 2: Refund ─────────────────────────────────────────────────────────
 
-  async getRefundXDR(jobId: string): Promise<{ refundTxXDR: string; escrowPublicKey: string; deadline: number }> {
+  async getRefundXDR(jobId: string, callerWallet?: string): Promise<{ refundTxXDR: string; escrowPublicKey: string; deadline: number }> {
     const escrow = await StellarEscrowModel.findByJobId(jobId);
     if (!escrow) throw new Error(`Escrow not found for job ${jobId}`);
+    if (callerWallet && callerWallet !== escrow.host_public_key) {
+      throw new Error('Unauthorized: only the escrow host can fetch the refund XDR');
+    }
     if (escrow.status !== EscrowStatus.FUNDED) {
       throw new Error(`Escrow is not in FUNDED status (current: ${escrow.status})`);
     }
@@ -248,9 +278,12 @@ export class StellarService {
     };
   }
 
-  async refundEscrow(jobId: string, hostSignedXDR: string): Promise<string> {
+  async refundEscrow(jobId: string, hostSignedXDR: string, callerWallet?: string): Promise<string> {
     const escrow = await StellarEscrowModel.findByJobId(jobId);
     if (!escrow) throw new Error(`Escrow not found for job ${jobId}`);
+    if (callerWallet && callerWallet !== escrow.host_public_key) {
+      throw new Error('Unauthorized: only the escrow host can request a refund');
+    }
     if (escrow.status !== EscrowStatus.FUNDED) {
       throw new Error(`Cannot refund: escrow status is ${escrow.status}`);
     }
@@ -269,6 +302,13 @@ export class StellarService {
       hostSignedXDR,
       stellarConfig.networkPassphrase
     ) as Transaction;
+
+    // Guard: submitted XDR must match the server-generated refund transaction
+    const submittedHash = innerTx.hash().toString('hex');
+    if (submittedHash !== escrow.refund_tx_hash) {
+      throw new Error('XDR mismatch: submitted transaction does not match the stored refund transaction');
+    }
+
     innerTx.sign(arbiterKeypair);
 
     // FeeBump: treasury pays the fee so escrow account needs zero XLM
@@ -375,7 +415,7 @@ export class StellarService {
 
         const arbiterKeypair = StellarUtil.getArbiterKeypair();
         const treasuryKeypair = StellarUtil.getTreasuryKeypair();
-        const escrowSecret = Buffer.from(escrow.secret_key_encrypted, 'base64').toString('utf8');
+        const escrowSecret = decryptSecret(escrow.secret_key_encrypted);
         const escrowKeypair = Keypair.fromSecret(escrowSecret);
 
         const innerTx = TransactionBuilder.fromXDR(
@@ -418,11 +458,22 @@ export class StellarService {
 
   // ─── Sprint 3: Dispute Flow ───────────────────────────────────────────────────
 
-  async openDispute(dto: OpenDisputeDto): Promise<void> {
+  async openDispute(dto: OpenDisputeDto & { callerWallet?: string }): Promise<void> {
     const escrow = await StellarEscrowModel.findByJobId(dto.jobId);
     if (!escrow) throw new Error(`Escrow not found for job ${dto.jobId}`);
     if (escrow.status !== EscrowStatus.FUNDED) {
       throw new Error(`Cannot open dispute: escrow status is ${escrow.status}`);
+    }
+
+    // Identity guard: caller must be the actual host or talent of this escrow
+    if (dto.callerWallet) {
+      const isHost = dto.callerWallet === escrow.host_public_key;
+      const isTalent = dto.callerWallet === escrow.talent_public_key;
+      if (!isHost && !isTalent) {
+        throw new Error('Unauthorized: caller is not a party to this escrow');
+      }
+      // Derive initiator from verified wallet instead of trusting the request body
+      dto.initiator = isHost ? 'HOST' : 'TALENT';
     }
 
     await StellarEscrowModel.updateStatus(dto.jobId, EscrowStatus.DISPUTED, {
@@ -508,6 +559,17 @@ export class StellarService {
       winnerSignedXDR,
       stellarConfig.networkPassphrase
     ) as Transaction;
+
+    // Guard: submitted XDR must match the arbiter-generated resolution transaction
+    if (escrow.dispute_resolution_xdr) {
+      const storedTx = TransactionBuilder.fromXDR(
+        escrow.dispute_resolution_xdr,
+        stellarConfig.networkPassphrase
+      ) as Transaction;
+      if (innerTx.hash().toString('hex') !== storedTx.hash().toString('hex')) {
+        throw new Error('XDR mismatch: submitted transaction does not match the arbiter resolution');
+      }
+    }
 
     // FeeBump: treasury pays fee (escrow has 0 XLM)
     const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(

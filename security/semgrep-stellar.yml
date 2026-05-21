@@ -1,0 +1,123 @@
+rules:
+  # ─── VULN-004: Secret key stored as base64 (not encrypted) ─────────────────
+  - id: stellar-secret-base64-storage
+    patterns:
+      - pattern: Buffer.from($SECRET).toString('base64')
+      - pattern-not-inside: |
+          // ... safe usage ...
+    message: >
+      Possible plaintext storage of Stellar secret key via base64.
+      Base64 is encoding, not encryption. Use AES-256-GCM via encryptSecret() from stellar-crypto.ts.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: CWE-312 (Cleartext Storage of Sensitive Information)
+      vuln-id: VULN-004
+
+  # ─── VULN-002: XDR parsed and signed without hash validation ───────────────
+  - id: stellar-xdr-blind-signing
+    patterns:
+      - pattern: |
+          const $TX = TransactionBuilder.fromXDR($XDR, ...) as Transaction;
+          ...
+          $TX.sign($KEYPAIR);
+      - pattern-not: |
+          const $TX = TransactionBuilder.fromXDR($XDR, ...) as Transaction;
+          ...
+          $TX.hash()...
+          ...
+          $TX.sign($KEYPAIR);
+    message: >
+      XDR parsed and signed without validating hash against stored transaction.
+      An attacker controlling $XDR can redirect funds to an arbitrary destination.
+      Always verify: submittedTx.hash().toString('hex') === storedTxHash
+    languages: [typescript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: CWE-345 (Insufficient Verification of Data Authenticity)
+      vuln-id: VULN-002
+
+  # ─── VULN-003: createEscrow without duplicate check ───────────────────────
+  - id: stellar-missing-duplicate-check
+    pattern: |
+      async createEscrow($DTO: ...) {
+        ...
+        await StellarEscrowModel.create({...});
+      }
+    pattern-not: |
+      async createEscrow($DTO: ...) {
+        ...
+        await StellarEscrowModel.findByJobId(...)
+        ...
+        await StellarEscrowModel.create({...});
+      }
+    message: >
+      createEscrow() inserts into MongoDB without first checking for an existing escrow.
+      Race condition: two concurrent calls with the same jobId can both pass the check
+      and create duplicate on-chain accounts, draining treasury funds.
+    languages: [typescript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: CWE-362 (Race Condition)
+      vuln-id: VULN-003
+
+  # ─── VULN-006: Self-dealing — host === talent not validated ────────────────
+  - id: stellar-self-dealing
+    pattern: |
+      async createEscrow($DTO: ...) {
+        ...
+        Operation.setOptions({ ..., signer: { ed25519PublicKey: $HOST, weight: 1 } })
+        ...
+        Operation.setOptions({ ..., signer: { ed25519PublicKey: $TALENT, weight: 1 } })
+        ...
+      }
+    pattern-not: |
+      async createEscrow($DTO: ...) {
+        ...
+        if ($HOST === $TALENT) { throw ...; }
+        ...
+      }
+    message: >
+      No check that hostPublicKey !== talentPublicKey.
+      If both are the same account, it accumulates weight=2 in the 2-of-3 multisig,
+      bypassing the arbiter and stealing treasury funds unilaterally.
+    languages: [typescript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: CWE-284 (Improper Access Control)
+      vuln-id: VULN-006
+
+  # ─── VULN-009: Missing unique index on job_id ──────────────────────────────
+  - id: stellar-missing-unique-index
+    pattern: collection.createIndex({ job_id: 1 })
+    pattern-not: collection.createIndex({ job_id: 1 }, { unique: true, ... })
+    message: >
+      Index on job_id is not marked unique.
+      Without { unique: true }, concurrent inserts can create duplicate escrows.
+      Add { unique: true } to prevent race-condition treasury drain.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: CWE-362 (Race Condition)
+      vuln-id: VULN-009
+
+  # ─── VULN-001: Stellar route without authGuard ─────────────────────────────
+  - id: stellar-route-no-auth
+    patterns:
+      - pattern: router.$METHOD('/escrow/...', $CONTROLLER)
+      - pattern-not: router.$METHOD('/escrow/...', authGuard, ...)
+      - pattern-not: router.$METHOD('/escrow/...', adminGuard, ...)
+    message: >
+      Stellar escrow route registered without authGuard or adminGuard.
+      Any unauthenticated request can invoke this handler.
+    languages: [typescript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: CWE-306 (Missing Authentication for Critical Function)
+      vuln-id: VULN-001

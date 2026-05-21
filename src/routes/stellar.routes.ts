@@ -1,30 +1,106 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { StellarController } from '../controllers/StellarController';
 import { authGuard, adminGuard } from '../guards/auth.guard';
+import {
+  RATE_LIMIT_STELLAR_WINDOW_MS,
+  RATE_LIMIT_STELLAR_CREATE_MAX,
+  RATE_LIMIT_STELLAR_RELEASE_MAX,
+  RATE_LIMIT_STELLAR_STATUS_MAX,
+  RATE_LIMIT_STELLAR_DISPUTE_MAX,
+} from '../utils/consts';
 
 const router = Router();
 const stellar = new StellarController();
 
-// Sprint 1 — Create escrow
-router.post('/escrow/create', stellar.createEscrow.bind(stellar));
+// authGuard validates JWT and populates req.user before any rate limiter runs
+router.use(authGuard);
 
-// Sprint 2 — Get unsigned XDRs for Freighter to sign
-router.get('/escrow/:jobId/payment-xdr', stellar.getPaymentXDR.bind(stellar));
-router.get('/escrow/:jobId/refund-xdr', stellar.getRefundXDR.bind(stellar));
+// Rate limit key: userId from JWT — buckets are per-user, not per-IP
+const userKey = (req: Request): string =>
+  req.user?.userId ?? req.ip ?? 'anonymous';
 
-// Sprint 2 — Submit host-signed XDR + backend adds arbiter
-router.post('/escrow/release', stellar.releasePayment.bind(stellar));
-router.post('/escrow/refund', stellar.refundEscrow.bind(stellar));
+const createEscrowLimiter = rateLimit({
+  windowMs: RATE_LIMIT_STELLAR_WINDOW_MS,
+  limit: RATE_LIMIT_STELLAR_CREATE_MAX,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-6',
+  legacyHeaders: false,
+  skipFailedRequests: true,
+  validate: { keyGeneratorIpFallback: false },
+  message: {
+    success: false,
+    message: 'Too many escrow creation requests. Please wait before trying again.',
+    error: 'RATE_LIMIT_EXCEEDED',
+  },
+});
 
-// Sprint 1+2 — Real-time status from Horizon
-router.get('/escrow/:jobId/status', stellar.getEscrowStatus.bind(stellar));
+// Shared limiter for release / refund / dispute claim — all trigger on-chain TX submissions
+const releaseRefundLimiter = rateLimit({
+  windowMs: RATE_LIMIT_STELLAR_WINDOW_MS,
+  limit: RATE_LIMIT_STELLAR_RELEASE_MAX,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-6',
+  legacyHeaders: false,
+  skipFailedRequests: true,
+  validate: { keyGeneratorIpFallback: false },
+  message: {
+    success: false,
+    message: 'Too many payment requests. Please wait before trying again.',
+    error: 'RATE_LIMIT_EXCEEDED',
+  },
+});
 
-// Sprint 3 — Dispute flow (any authenticated user)
-router.post('/dispute', authGuard, stellar.openDispute.bind(stellar));
-router.get('/escrow/:jobId/dispute-xdr', authGuard, stellar.getDisputeXDR.bind(stellar));
-router.post('/dispute/claim', authGuard, stellar.claimDispute.bind(stellar));
+const statusLimiter = rateLimit({
+  windowMs: RATE_LIMIT_STELLAR_WINDOW_MS,
+  limit: RATE_LIMIT_STELLAR_STATUS_MAX,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-6',
+  legacyHeaders: false,
+  skipFailedRequests: true,
+  validate: { keyGeneratorIpFallback: false },
+  message: {
+    success: false,
+    message: 'Too many status requests. Please wait before trying again.',
+    error: 'RATE_LIMIT_EXCEEDED',
+  },
+});
 
-// Sprint 3 — Admin arbitration (ADMIN only)
+const disputeLimiter = rateLimit({
+  windowMs: RATE_LIMIT_STELLAR_WINDOW_MS,
+  limit: RATE_LIMIT_STELLAR_DISPUTE_MAX,
+  keyGenerator: userKey,
+  standardHeaders: 'draft-6',
+  legacyHeaders: false,
+  skipFailedRequests: true,
+  validate: { keyGeneratorIpFallback: false },
+  message: {
+    success: false,
+    message: 'Too many dispute requests. Please wait before trying again.',
+    error: 'RATE_LIMIT_EXCEEDED',
+  },
+});
+
+// Sprint 1 — Create escrow (max 5/min per user — treasury reserve exhaustion guard)
+router.post('/escrow/create', createEscrowLimiter, stellar.createEscrow.bind(stellar));
+
+// Sprint 2 — Get unsigned XDRs for Freighter (read-only, shared status quota)
+router.get('/escrow/:jobId/payment-xdr', statusLimiter, stellar.getPaymentXDR.bind(stellar));
+router.get('/escrow/:jobId/refund-xdr', statusLimiter, stellar.getRefundXDR.bind(stellar));
+
+// Sprint 2 — Submit host-signed XDR + backend adds arbiter (max 10/min per user)
+router.post('/escrow/release', releaseRefundLimiter, stellar.releasePayment.bind(stellar));
+router.post('/escrow/refund', releaseRefundLimiter, stellar.refundEscrow.bind(stellar));
+
+// Sprint 1+2 — Real-time status from Horizon (max 30/min per user)
+router.get('/escrow/:jobId/status', statusLimiter, stellar.getEscrowStatus.bind(stellar));
+
+// Sprint 3 — Dispute flow: open (max 5/min), XDR fetch (status quota), claim (release quota)
+router.post('/dispute', disputeLimiter, stellar.openDispute.bind(stellar));
+router.get('/escrow/:jobId/dispute-xdr', statusLimiter, stellar.getDisputeXDR.bind(stellar));
+router.post('/dispute/claim', releaseRefundLimiter, stellar.claimDispute.bind(stellar));
+
+// Sprint 3 — Admin arbitration: adminGuard re-validates JWT and enforces ADMIN role
 router.get('/admin/disputes', adminGuard, stellar.listDisputes.bind(stellar));
 router.post('/admin/resolve', adminGuard, stellar.resolveDispute.bind(stellar));
 

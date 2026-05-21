@@ -8,13 +8,21 @@ export const MAX_EXPORT_LIMIT = 100000;
 // Security
 export const BCRYPT_SALT_ROUNDS = 12;
 
-// Rate limiting
+// Rate limiting — global + auth + payment
 export const RATE_LIMIT_GLOBAL_WINDOW_MS = 900000;    // 15 minutes
 export const RATE_LIMIT_GLOBAL_MAX = 100;
 export const RATE_LIMIT_AUTH_WINDOW_MS = 60000;        // 1 minute
 export const RATE_LIMIT_AUTH_MAX = 10;
 export const RATE_LIMIT_PAYMENT_WINDOW_MS = 60000;     // 1 minute
 export const RATE_LIMIT_PAYMENT_MAX = 5;
+
+// Rate limiting — Stellar endpoints (per-user, 1-minute window)
+// SEC-OPEN-003: limit escrow creation to block treasury reserve exhaustion
+export const RATE_LIMIT_STELLAR_WINDOW_MS = 60000;     // 1 minute
+export const RATE_LIMIT_STELLAR_CREATE_MAX = 5;        // POST /escrow/create
+export const RATE_LIMIT_STELLAR_RELEASE_MAX = 10;      // POST /escrow/release, /refund, /dispute/claim
+export const RATE_LIMIT_STELLAR_STATUS_MAX = 30;       // GET /escrow/:id/status, /xdr endpoints
+export const RATE_LIMIT_STELLAR_DISPUTE_MAX = 5;       // POST /dispute (open)
 
 // External API delays (ms) — rate limiting between requests
 export const API_DELAY_TWITTER_MS = 100;

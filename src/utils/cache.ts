@@ -30,6 +30,7 @@ class InMemoryCache implements ICache {
 
     if (typeof process !== 'undefined' && process.env['NODE_ENV'] !== 'production') {
       this.cleanupInterval = setInterval(() => this.cleanExpired(), 60000);
+      this.cleanupInterval.unref();
     }
   }
 

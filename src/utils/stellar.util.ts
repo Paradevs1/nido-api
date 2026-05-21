@@ -15,6 +15,15 @@ export class StellarUtil {
     }
   }
 
+  static isValidSecretKey(secretKey: string): boolean {
+    try {
+      Keypair.fromSecret(secretKey);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   static async loadAccount(publicKey: string) {
     try {
       return await stellarServer.loadAccount(publicKey);

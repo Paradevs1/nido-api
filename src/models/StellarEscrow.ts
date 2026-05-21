@@ -47,6 +47,11 @@ export class StellarEscrowModel {
     return db.collection<IStellarEscrow>(this.collectionName);
   }
 
+  static async ensureIndexes(): Promise<void> {
+    const collection = await this.getCollection();
+    await collection.createIndex({ job_id: 1 }, { unique: true, name: 'job_id_unique' });
+  }
+
   static async create(
     escrowData: Omit<IStellarEscrow, '_id' | 'created_at' | 'updated_at'>
   ): Promise<IStellarEscrow> {
@@ -56,8 +61,15 @@ export class StellarEscrowModel {
       created_at: new Date(),
       updated_at: new Date(),
     };
-    const result = await collection.insertOne(newEscrow);
-    return { ...newEscrow, _id: result.insertedId };
+    try {
+      const result = await collection.insertOne(newEscrow);
+      return { ...newEscrow, _id: result.insertedId };
+    } catch (err: any) {
+      if (err.code === 11000) {
+        throw new Error(`Escrow already exists for job ${escrowData.job_id}`);
+      }
+      throw err;
+    }
   }
 
   static async findByJobId(jobId: string): Promise<IStellarEscrow | null> {
@@ -134,5 +146,25 @@ export class StellarEscrowModel {
       return acc;
     }, {} as Record<string, number>);
     return { total, byStatus: statusCounts, totalAmount: (amountAgg[0] as any)?.['total'] || 0 };
+  }
+
+  static async updateTxHash(jobId: string, txHash: string): Promise<boolean> {
+    const collection = await this.getCollection();
+    const result = await collection.updateOne(
+      { job_id: jobId },
+      { $set: { stellar_tx_hash: txHash, updated_at: new Date() } }
+    );
+    return result.modifiedCount > 0;
+  }
+
+  static async deleteOldEscrows(daysOld: number): Promise<number> {
+    const collection = await this.getCollection();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - daysOld);
+    const result = await collection.deleteMany({
+      status: { $in: [EscrowStatus.COMPLETED, EscrowStatus.REFUNDED] },
+      created_at: { $lt: cutoff },
+    });
+    return result.deletedCount;
   }
 }
