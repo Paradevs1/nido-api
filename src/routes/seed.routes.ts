@@ -14,7 +14,7 @@ router.post('/demo-campaign', async (req: Request, res: Response) => {
 
   try {
     await connectDB();
-    const db = getBountiesDB();
+    const db = await getBountiesDB();
     const campaigns = db.collection('campaigns');
 
     const DEMO_ID = new ObjectId('6b0e1cadead105ec638de777');
