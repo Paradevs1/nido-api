@@ -1,19 +1,36 @@
 import { Request, Response } from 'express';
 import { StellarService } from '../services/StellarService';
+import type { CctpInboundService } from '../services/CctpInboundService';
 import {
   CreateEscrowDto,
+  FundEscrowDto,
   ReleaseEscrowDto,
   RefundEscrowDto,
   OpenDisputeDto,
   ResolveDisputeDto,
   ClaimDisputeDto,
+  PrepareInboundDto,
+  RegisterBurnDto,
+  RelayMintDto,
 } from '../dtos/stellar.dto';
 
 export class StellarController {
   private stellarService: StellarService;
+  private _cctpInbound?: CctpInboundService;
 
   constructor() {
     this.stellarService = new StellarService();
+  }
+
+  // Lazy-loaded so the CCTP subsystem (which pulls config/stellar → dotenv) is
+  // only imported when an inbound endpoint is actually hit. Keeps the controller's
+  // module-load graph minimal for tests that mock StellarService.
+  private get cctpInbound(): CctpInboundService {
+    if (!this._cctpInbound) {
+      const { CctpInboundService } = require('../services/CctpInboundService');
+      this._cctpInbound = new CctpInboundService();
+    }
+    return this._cctpInbound!;
   }
 
   // ─── Sprint 1: Create Escrow ──────────────────────────────────────────────────
@@ -43,12 +60,101 @@ export class StellarController {
             refundTxHash: escrow.refund_tx_hash,
             deadline: escrow.deadline,
           },
+          // Host must sign this to deposit the USDC (non-custodial funding)
+          fundingTxXDR: escrow.funding_tx_xdr,
         },
-        message: 'Escrow created successfully',
+        message: 'Escrow created — host must sign the funding payment to deposit USDC',
       });
     } catch (error: any) {
       console.error('[StellarController] createEscrow error:', error.message);
       return res.status(500).json({ success: false, message: error.message || 'Failed to create escrow' });
+    }
+  }
+
+  // ─── Host-funded deposit: fetch funding XDR + submit host-signed funding ──────
+
+  async getFundingXDR(req: Request, res: Response): Promise<Response> {
+    try {
+      const jobId = req.params['jobId']!;
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const result = await this.stellarService.getFundingXDR(jobId, callerWallet);
+      return res.status(200).json({ success: true, data: result });
+    } catch (error: any) {
+      const status = error.message?.includes('Unauthorized') ? 403 : 400;
+      return res.status(status).json({ success: false, message: error.message });
+    }
+  }
+
+  async fundEscrow(req: Request, res: Response): Promise<Response> {
+    try {
+      const dto: FundEscrowDto = req.body;
+      if (!dto.jobId || !dto.hostSignedXDR) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields: jobId, hostSignedXDR',
+        });
+      }
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const txHash = await this.stellarService.fundEscrow(dto.jobId, dto.hostSignedXDR, callerWallet);
+      return res.status(200).json({
+        success: true,
+        data: { transactionHash: txHash },
+        message: 'Escrow funded successfully',
+      });
+    } catch (error: any) {
+      console.error('[StellarController] fundEscrow error:', error.message);
+      const status = error.message?.includes('Unauthorized') ? 403 : 500;
+      return res.status(status).json({ success: false, message: error.message || 'Failed to fund escrow' });
+    }
+  }
+
+  // ─── CCTP V2 inbound funding (gated by CCTP_ENABLED) ──────────────────────────
+
+  private inboundErrorStatus(message?: string): number {
+    if (message?.includes('Unauthorized')) return 403;
+    if (message?.includes('disabled')) return 404; // feature off — behave as if route doesn't exist
+    return 400;
+  }
+
+  async prepareInbound(req: Request, res: Response): Promise<Response> {
+    try {
+      const dto: PrepareInboundDto = req.body;
+      if (!dto.jobId || !dto.sourceChain) {
+        return res.status(400).json({ success: false, message: 'Missing required fields: jobId, sourceChain' });
+      }
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const data = await this.cctpInbound.prepareInbound(dto, callerWallet);
+      return res.status(200).json({ success: true, data });
+    } catch (error: any) {
+      return res.status(this.inboundErrorStatus(error.message)).json({ success: false, message: error.message });
+    }
+  }
+
+  async registerBurn(req: Request, res: Response): Promise<Response> {
+    try {
+      const dto: RegisterBurnDto = req.body;
+      if (!dto.jobId || !dto.sourceChain || !dto.sourceTxHash) {
+        return res.status(400).json({ success: false, message: 'Missing required fields: jobId, sourceChain, sourceTxHash' });
+      }
+      const callerWallet = (req as any).user?.wallet_stellar as string | undefined;
+      const data = await this.cctpInbound.registerBurn(dto, callerWallet);
+      return res.status(200).json({ success: true, data, message: 'Burn registered — relaying mint to Stellar' });
+    } catch (error: any) {
+      return res.status(this.inboundErrorStatus(error.message)).json({ success: false, message: error.message });
+    }
+  }
+
+  async relayInboundMint(req: Request, res: Response): Promise<Response> {
+    try {
+      const dto: RelayMintDto = req.body;
+      if (!dto.jobId) {
+        return res.status(400).json({ success: false, message: 'Missing required field: jobId' });
+      }
+      const data = await this.cctpInbound.relayMint(dto.jobId);
+      return res.status(200).json({ success: true, data });
+    } catch (error: any) {
+      console.error('[StellarController] relayInboundMint error:', error.message);
+      return res.status(this.inboundErrorStatus(error.message)).json({ success: false, message: error.message });
     }
   }
 

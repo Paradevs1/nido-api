@@ -81,8 +81,18 @@ const disputeLimiter = rateLimit({
   },
 });
 
-// Sprint 1 — Create escrow (max 5/min per user — treasury reserve exhaustion guard)
+// Sprint 1 — Create escrow setup (max 5/min per user — treasury reserve exhaustion guard)
 router.post('/escrow/create', createEscrowLimiter, stellar.createEscrow.bind(stellar));
+
+// Host-funded deposit — fetch funding XDR (status quota) + submit host-signed funding (create quota)
+router.get('/escrow/:jobId/funding-xdr', statusLimiter, stellar.getFundingXDR.bind(stellar));
+router.post('/escrow/fund', createEscrowLimiter, stellar.fundEscrow.bind(stellar));
+
+// CCTP V2 inbound funding (gated by CCTP_ENABLED) — prepare burn params, register the
+// source-chain burn, relay the mint. The burn itself is signed by the host's own wallet.
+router.post('/escrow/inbound/prepare', createEscrowLimiter, stellar.prepareInbound.bind(stellar));
+router.post('/escrow/inbound/register', createEscrowLimiter, stellar.registerBurn.bind(stellar));
+router.post('/escrow/inbound/relay', releaseRefundLimiter, stellar.relayInboundMint.bind(stellar));
 
 // Sprint 2 — Get unsigned XDRs for Freighter (read-only, shared status quota)
 router.get('/escrow/:jobId/payment-xdr', statusLimiter, stellar.getPaymentXDR.bind(stellar));

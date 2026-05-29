@@ -14,6 +14,7 @@
     "migrate:creator-profile": "npx ts-node scripts/migrate-creator-profile-fields.ts",
     "delete-hosts-without-campaigns": "npx ts-node scripts/delete-hosts-without-campaigns.ts",
     "delete-hosts-without-campaigns:dry": "npx ts-node scripts/delete-hosts-without-campaigns.ts --dry-run",
+    "stellar:check": "npx ts-node scripts/stellar-mainnet-check.ts",
     "cctp:check": "npx ts-node scripts/cctp-contract-check.ts",
     "db:up": "docker compose up -d mongo",
     "db:down": "docker compose down",

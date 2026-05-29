@@ -109,16 +109,11 @@ export class StellarService {
           source: escrowKeypair.publicKey(),
         })
       )
-      .addOperation(
-        Operation.payment({
-          destination: escrowKeypair.publicKey(),
-          asset: usdcAsset,
-          amount: dto.amount,
-        })
-      )
       .setTimeout(stellarConfig.defaults.timeout)
       .build();
 
+    // Setup tx is fully sponsored by the treasury — no USDC moves here.
+    // The host funds the escrow separately by signing the funding payment below.
     transaction.sign(treasuryKeypair);
     transaction.sign(escrowKeypair);
 
@@ -133,6 +128,14 @@ export class StellarService {
         dto.deadlineDays
       );
 
+      // Build the (unsigned) funding payment: host → escrow. The host signs this
+      // in Freighter so the USDC leaves the host's wallet (non-custodial).
+      const funding = await this.buildFundingTransaction(
+        dto.hostPublicKey,
+        escrowKeypair.publicKey(),
+        dto.amount
+      );
+
       const escrow = await StellarEscrowModel.create({
         job_id: dto.jobId,
         escrow_public_key: escrowKeypair.publicKey(),
@@ -142,7 +145,9 @@ export class StellarService {
         arbiter_public_key: arbiterKeypair.publicKey(),
         amount: dto.amount,
         asset_code: usdcAsset.code,
-        status: EscrowStatus.FUNDED,
+        status: EscrowStatus.CREATED,
+        funding_tx_xdr: funding.fundingTxXDR,
+        funding_tx_hash: funding.fundingTxHash,
         payment_tx_xdr: preAuthTxs.paymentTxXDR,
         payment_tx_hash: preAuthTxs.paymentTxHash,
         refund_tx_xdr: preAuthTxs.refundTxXDR,
@@ -200,6 +205,98 @@ export class StellarService {
     };
   }
 
+  // ─── Host-funded deposit: build + submit the funding payment ────────────────
+
+  /**
+   * Builds the unsigned funding payment (host → escrow, USDC). Source is the
+   * host account so the USDC debits the host's wallet. The host signs this XDR
+   * in Freighter; the treasury fee-bumps it at submit time so the host needs no
+   * XLM for fees (only the USDC + a USDC trustline on its own account).
+   */
+  async buildFundingTransaction(
+    hostPublicKey: string,
+    escrowPublicKey: string,
+    amount: string
+  ): Promise<{ fundingTxXDR: string; fundingTxHash: string }> {
+    const hostAccount = await StellarUtil.loadAccount(hostPublicKey);
+    const usdcAsset = StellarUtil.getUSDCAsset();
+
+    const fundingTx = new TransactionBuilder(hostAccount, {
+      fee: BASE_FEE,
+      networkPassphrase: stellarConfig.networkPassphrase,
+    })
+      .addOperation(
+        Operation.payment({ destination: escrowPublicKey, asset: usdcAsset, amount })
+      )
+      .setTimeout(stellarConfig.defaults.timeout)
+      .build();
+
+    return {
+      fundingTxXDR: fundingTx.toXDR(),
+      fundingTxHash: fundingTx.hash().toString('hex'),
+    };
+  }
+
+  async getFundingXDR(
+    jobId: string,
+    callerWallet?: string
+  ): Promise<{ fundingTxXDR: string; escrowPublicKey: string; amount: string }> {
+    const escrow = await StellarEscrowModel.findByJobId(jobId);
+    if (!escrow) throw new Error(`Escrow not found for job ${jobId}`);
+    if (callerWallet && callerWallet !== escrow.host_public_key) {
+      throw new Error('Unauthorized: only the escrow host can fetch the funding XDR');
+    }
+    if (escrow.status !== EscrowStatus.CREATED) {
+      throw new Error(`Escrow is not awaiting funding (current: ${escrow.status})`);
+    }
+    if (!escrow.funding_tx_xdr) throw new Error('Funding XDR not available');
+    return {
+      fundingTxXDR: escrow.funding_tx_xdr,
+      escrowPublicKey: escrow.escrow_public_key,
+      amount: escrow.amount,
+    };
+  }
+
+  async fundEscrow(jobId: string, hostSignedXDR: string, callerWallet?: string): Promise<string> {
+    const escrow = await StellarEscrowModel.findByJobId(jobId);
+    if (!escrow) throw new Error(`Escrow not found for job ${jobId}`);
+    if (callerWallet && callerWallet !== escrow.host_public_key) {
+      throw new Error('Unauthorized: only the escrow host can fund the escrow');
+    }
+    if (escrow.status !== EscrowStatus.CREATED) {
+      throw new Error(`Cannot fund: escrow status is ${escrow.status}`);
+    }
+
+    const treasuryKeypair = StellarUtil.getTreasuryKeypair();
+
+    const innerTx = TransactionBuilder.fromXDR(
+      hostSignedXDR,
+      stellarConfig.networkPassphrase
+    ) as Transaction;
+
+    // Guard: submitted XDR must match the server-generated funding transaction
+    if (innerTx.hash().toString('hex') !== escrow.funding_tx_hash) {
+      throw new Error('XDR mismatch: submitted transaction does not match the stored funding transaction');
+    }
+
+    // FeeBump: treasury pays the fee so the host needs no XLM for fees
+    const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(
+      treasuryKeypair,
+      FEE_BUMP_FEE,
+      innerTx,
+      stellarConfig.networkPassphrase
+    );
+    feeBumpTx.sign(treasuryKeypair);
+
+    const result = await stellarServer.submitTransaction(feeBumpTx);
+
+    await StellarEscrowModel.updateStatus(jobId, EscrowStatus.FUNDED, {
+      fund_tx_hash: result.hash,
+    });
+
+    return result.hash;
+  }
+
   // ─── Sprint 2: Release Payment ────────────────────────────────────────────────
 
   async getPaymentXDR(jobId: string, callerWallet?: string): Promise<{ paymentTxXDR: string; escrowPublicKey: string }> {
@@ -255,6 +352,13 @@ export class StellarService {
     await StellarEscrowModel.updateStatus(jobId, EscrowStatus.COMPLETED, {
       release_tx_hash: result.hash,
     });
+
+    const mergeTxHash = await this.closeEscrowAccount(escrow);
+    if (mergeTxHash) {
+      await StellarEscrowModel.updateStatus(jobId, EscrowStatus.COMPLETED, {
+        merge_tx_hash: mergeTxHash,
+      });
+    }
 
     return result.hash;
   }
@@ -326,6 +430,13 @@ export class StellarService {
       refund_close_tx_hash: result.hash,
     });
 
+    const mergeTxHash = await this.closeEscrowAccount(escrow);
+    if (mergeTxHash) {
+      await StellarEscrowModel.updateStatus(jobId, EscrowStatus.REFUNDED, {
+        merge_tx_hash: mergeTxHash,
+      });
+    }
+
     return result.hash;
   }
 
@@ -358,6 +469,7 @@ export class StellarService {
       // Account may be merged/closed after release/refund — use DB data
     }
 
+    const isCreated = escrow.status === EscrowStatus.CREATED;
     const isFunded = escrow.status === EscrowStatus.FUNDED;
     const isDisputed = escrow.status === EscrowStatus.DISPUTED;
 
@@ -375,6 +487,8 @@ export class StellarService {
     };
 
     if (escrow.deadline !== undefined) dto.deadline = escrow.deadline;
+    if (isCreated && escrow.funding_tx_xdr) dto.fundingTxXDR = escrow.funding_tx_xdr;
+    if (escrow.fund_tx_hash) dto.fundTxHash = escrow.fund_tx_hash;
     if (isFunded && escrow.payment_tx_xdr) dto.paymentTxXDR = escrow.payment_tx_xdr;
     if (isFunded && escrow.refund_tx_xdr) dto.refundTxXDR = escrow.refund_tx_xdr;
     if (escrow.release_tx_hash) dto.releaseTxHash = escrow.release_tx_hash;
@@ -386,6 +500,13 @@ export class StellarService {
       dto.disputeResolutionXDR = escrow.dispute_resolution_xdr;
     }
     if (escrow.dispute_closed_tx_hash) dto.disputeClosedTxHash = escrow.dispute_closed_tx_hash;
+    if (escrow.merge_tx_hash) dto.mergeTxHash = escrow.merge_tx_hash;
+    // CCTP inbound funding state (for frontend polling during a cross-chain deposit)
+    if (escrow.funding_method) dto.fundingMethod = escrow.funding_method;
+    if (escrow.inbound_source_chain) dto.inboundSourceChain = escrow.inbound_source_chain;
+    if (escrow.inbound_source_tx_hash) dto.inboundSourceTxHash = escrow.inbound_source_tx_hash;
+    if (escrow.inbound_attestation_status) dto.inboundAttestationStatus = escrow.inbound_attestation_status;
+    if (escrow.inbound_mint_tx_hash) dto.inboundMintTxHash = escrow.inbound_mint_tx_hash;
 
     return dto;
   }
@@ -441,6 +562,13 @@ export class StellarService {
           refund_close_tx_hash: result.hash,
         });
 
+        const mergeTxHash = await this.closeEscrowAccount(escrow);
+        if (mergeTxHash) {
+          await StellarEscrowModel.updateStatus(escrow.job_id, EscrowStatus.REFUNDED, {
+            merge_tx_hash: mergeTxHash,
+          });
+        }
+
         results.push({ jobId: escrow.job_id, status: 'refunded', txHash: result.hash });
         processed++;
       } catch (err: any) {
@@ -454,6 +582,53 @@ export class StellarService {
     }
 
     return { processed, failed, results };
+  }
+
+  // ─── Account Merge: close escrow and recover sponsored XLM ──────────────────
+
+  private async closeEscrowAccount(escrow: IStellarEscrow): Promise<string | null> {
+    try {
+      if (!escrow.secret_key_encrypted) throw new Error('escrow secret missing');
+
+      const escrowSecret = decryptSecret(escrow.secret_key_encrypted);
+      const escrowKeypair = Keypair.fromSecret(escrowSecret);
+      const arbiterKeypair = StellarUtil.getArbiterKeypair();
+      const treasuryKeypair = StellarUtil.getTreasuryKeypair();
+      const usdcAsset = StellarUtil.getUSDCAsset();
+
+      // Load fresh escrow account — sequence number advanced after payment TX
+      const escrowAccount = await StellarUtil.loadAccount(escrowKeypair.publicKey());
+
+      // changeTrust(limit=0) removes the USDC trustline (requires balance = 0)
+      // accountMerge sends remaining native balance to treasury and closes the account
+      // arbiter(w=1) + escrow_master(w=1) = 2 ≥ highThreshold=2 ✓
+      const closeTx = new TransactionBuilder(escrowAccount, {
+        fee: BASE_FEE,
+        networkPassphrase: stellarConfig.networkPassphrase,
+      })
+        .addOperation(Operation.changeTrust({ asset: usdcAsset, limit: '0' }))
+        .addOperation(Operation.accountMerge({ destination: treasuryKeypair.publicKey() }))
+        .setTimeout(stellarConfig.defaults.timeout)
+        .build();
+
+      closeTx.sign(arbiterKeypair);
+      closeTx.sign(escrowKeypair);
+
+      const feeBumpTx = TransactionBuilder.buildFeeBumpTransaction(
+        treasuryKeypair,
+        FEE_BUMP_FEE,
+        closeTx,
+        stellarConfig.networkPassphrase
+      );
+      feeBumpTx.sign(treasuryKeypair);
+
+      const result = await stellarServer.submitTransaction(feeBumpTx);
+      return result.hash;
+    } catch (err: any) {
+      const codes = err?.response?.data?.extras?.result_codes;
+      console.error('[closeEscrowAccount] failed:', codes ? JSON.stringify(codes) : err.message);
+      return null;
+    }
   }
 
   // ─── Sprint 3: Dispute Flow ───────────────────────────────────────────────────
@@ -588,6 +763,13 @@ export class StellarService {
     await StellarEscrowModel.updateStatus(jobId, finalStatus, {
       dispute_closed_tx_hash: result.hash,
     });
+
+    const mergeTxHash = await this.closeEscrowAccount(escrow);
+    if (mergeTxHash) {
+      await StellarEscrowModel.updateStatus(jobId, finalStatus, {
+        merge_tx_hash: mergeTxHash,
+      });
+    }
 
     return result.hash;
   }

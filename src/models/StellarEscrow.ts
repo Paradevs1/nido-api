@@ -2,11 +2,17 @@ import { ObjectId } from 'mongodb';
 
 export enum EscrowStatus {
   CREATED = 'CREATED',
+  // CCTP inbound: host burned USDC on a source chain; waiting for Iris
+  // attestation + the forwarder mint to land USDC on the escrow account.
+  PENDING_INBOUND_MINT = 'PENDING_INBOUND_MINT',
   FUNDED = 'FUNDED',
   COMPLETED = 'COMPLETED',
   REFUNDED = 'REFUNDED',
   DISPUTED = 'DISPUTED',
 }
+
+// How the escrow was (or will be) funded.
+export type FundingMethod = 'STELLAR_NATIVE' | 'CCTP';
 
 export interface IStellarEscrow {
   _id?: ObjectId;
@@ -19,6 +25,10 @@ export interface IStellarEscrow {
   amount: string;
   asset_code: string;
   status: EscrowStatus;
+  // Host-funded deposit: unsigned payment (host → escrow) the host signs to fund the escrow
+  funding_tx_xdr?: string;
+  funding_tx_hash?: string;
+  fund_tx_hash?: string; // on-chain hash once the funding payment is submitted
   payment_tx_xdr?: string;
   payment_tx_hash?: string;
   refund_tx_xdr?: string;
@@ -34,6 +44,14 @@ export interface IStellarEscrow {
   dispute_winner?: 'HOST' | 'TALENT';
   dispute_resolution_xdr?: string;
   dispute_closed_tx_hash?: string;
+  merge_tx_hash?: string;
+  // ─── CCTP inbound funding ───────────────────────────────────────────────
+  funding_method?: FundingMethod; // defaults to STELLAR_NATIVE when unset
+  inbound_source_chain?: string; // slug: ethereum | arbitrum | base | polygon | solana
+  inbound_source_domain?: number; // CCTP domain id of the source chain
+  inbound_source_tx_hash?: string; // burn tx hash on the source chain
+  inbound_attestation_status?: 'PENDING' | 'COMPLETE';
+  inbound_mint_tx_hash?: string; // Stellar tx hash of mint_and_forward relay
   created_at: Date;
   updated_at: Date;
 }
@@ -115,6 +133,14 @@ export class StellarEscrowModel {
     return await collection
       .find({ status: EscrowStatus.DISPUTED })
       .sort({ dispute_opened_at: -1 })
+      .toArray();
+  }
+
+  static async findPendingInboundMints(): Promise<IStellarEscrow[]> {
+    const collection = await this.getCollection();
+    return await collection
+      .find({ status: EscrowStatus.PENDING_INBOUND_MINT })
+      .sort({ updated_at: 1 })
       .toArray();
   }
 

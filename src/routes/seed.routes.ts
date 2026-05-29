@@ -9,6 +9,7 @@ const SLOTS = [
   { campaignId: '6b0e1cadead105ec638de778', talentId: '000000000000000000000003', talentN: 2 },
   { campaignId: '6b0e1cadead105ec638de779', talentId: '000000000000000000000004', talentN: 3 },
   { campaignId: '6b0e1cadead105ec638de77a', talentId: '000000000000000000000005', talentN: 4 },
+  { campaignId: '6b0e1cadead105ec638de77b', talentId: '000000000000000000000006', talentN: 5 },
 ];
 
 const DEMO_HOST_ID = new ObjectId('6a068e6ab237b9a480acd739');
@@ -112,12 +113,12 @@ router.post('/demo-campaign', async (req: Request, res: Response) => {
         _id: campaignOid,
         host_id: DEMO_HOST_ID.toString(),
         title: `NIDO Demo — Escrow Stellar (Slot ${slot.talentN})`,
-        about_project: 'Campanha demo do hackathon 37 Graus para testar o fluxo completo de escrow Stellar: criação multisig 2-de-3, depósito USDC testnet e liberação via Freighter.',
-        what_we_need: 'Conecte o Freighter, crie o escrow, assine a liberação e acompanhe no Stellar Expert.',
+        about_project: 'Campanha demo do programa 37 Graus (NearX) para o fluxo completo de escrow Stellar na MAINNET: criação multisig 2-de-3 com reserves patrocinadas, depósito USDC pelo próprio host (non-custodial) e liberação via Freighter com account merge.',
+        what_we_need: 'Conecte o Freighter (mainnet), deposite o USDC no escrow, assine a liberação e acompanhe no Stellar Expert.',
         content_type: 'post',
         content_pillars: 'web3,stellar,blockchain',
-        benefits: 'USDC testnet via Stellar Escrow',
-        requirements: 'Freighter wallet instalado e configurado para testnet',
+        benefits: 'USDC (mainnet) via Stellar Escrow non-custodial',
+        requirements: 'Freighter instalado na mainnet, com trustline de USDC e saldo para o depósito',
         status: 'active',
         payment_chain: 'stellar',
         payment_token: 'USDC',
