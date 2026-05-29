@@ -128,9 +128,13 @@ describe('Stellar DTOs', () => {
       expect(EscrowStatus.DISPUTED).toBe('DISPUTED');
     });
 
-    it('should have exactly 5 status values', () => {
+    it('should have a PENDING_INBOUND_MINT value (CCTP inbound funding)', () => {
+      expect(EscrowStatus.PENDING_INBOUND_MINT).toBe('PENDING_INBOUND_MINT');
+    });
+
+    it('should have exactly 6 status values', () => {
       const values = Object.values(EscrowStatus);
-      expect(values).toHaveLength(5);
+      expect(values).toHaveLength(6);
     });
   });
 
@@ -173,7 +177,7 @@ describe('Stellar DTOs', () => {
         data: {
           escrowPublicKey: escrow.publicKey(),
           jobId: 'job-123',
-          status: EscrowStatus.FUNDED,
+          status: EscrowStatus.CREATED,
           transactionHash: 'abc123',
           preAuthTxs: {
             paymentTxXDR: 'pay-xdr',
@@ -182,12 +186,13 @@ describe('Stellar DTOs', () => {
             refundTxHash: 'ref-hash',
             deadline: Math.floor(Date.now() / 1000) + 86400,
           },
+          fundingTxXDR: 'funding-xdr',
         },
         message: 'Escrow created successfully',
       };
       expect(response.success).toBe(true);
       expect(response.data.jobId).toBe('job-123');
-      expect(response.data.status).toBe(EscrowStatus.FUNDED);
+      expect(response.data.status).toBe(EscrowStatus.CREATED);
       expect(response.message).toBeTruthy();
     });
 

@@ -332,4 +332,74 @@ describe('StellarService (integration – mocked network)', () => {
       expect(() => Buffer.from(result.paymentTxXDR, 'base64')).not.toThrow();
     });
   });
+
+  // ─── Host-funded deposit: getFundingXDR + fundEscrow ──────────────────────────
+
+  describe('host-funded deposit', () => {
+    const makeHostAccountMock = () => ({
+      id: hostKeypair.publicKey(),
+      sequence: '400000000000',
+      accountId() { return this.id; },
+      sequenceNumber() { return this.sequence; },
+      incrementSequenceNumber() { this.sequence = String(BigInt(this.sequence) + 1n); },
+      balances: [{ asset_code: 'USDC', balance: '100' }],
+      signers: [{ key: hostKeypair.publicKey(), weight: 1 }],
+      thresholds: { low_threshold: 0, med_threshold: 0, high_threshold: 0 },
+    });
+
+    it('createEscrow persists status CREATED with a funding XDR (no USDC moved yet)', async () => {
+      let captured: any;
+      (StellarEscrowModel.create as jest.Mock).mockImplementationOnce(async (rec: any) => {
+        captured = rec;
+        return buildMockEscrowRecord(rec);
+      });
+      await service.createEscrow({
+        jobId: 'job-fund',
+        hostPublicKey: hostKeypair.publicKey(),
+        talentPublicKey: talentKeypair.publicKey(),
+        amount: '25',
+      });
+      expect(captured.status).toBe('CREATED');
+      expect(captured.funding_tx_xdr).toBeTruthy();
+      expect(captured.funding_tx_hash).toBeTruthy();
+    });
+
+    it('getFundingXDR rejects when escrow is not in CREATED status', async () => {
+      (StellarEscrowModel.findByJobId as jest.Mock).mockResolvedValueOnce(
+        buildMockEscrowRecord({ status: 'FUNDED' })
+      );
+      await expect(service.getFundingXDR('job-123')).rejects.toThrow(/not awaiting funding/);
+    });
+
+    it('fundEscrow rejects an XDR whose hash does not match the stored funding tx', async () => {
+      (StellarEscrowModel.findByJobId as jest.Mock).mockResolvedValueOnce(
+        buildMockEscrowRecord({ status: 'CREATED', funding_tx_hash: 'totally-different-hash' })
+      );
+      // Any valid XDR will do — its hash won't match the bogus stored hash
+      stellarServer.loadAccount.mockResolvedValueOnce(makeHostAccountMock());
+      const { fundingTxXDR } = await service.buildFundingTransaction(
+        hostKeypair.publicKey(), escrowKeypair.publicKey(), '25'
+      );
+      await expect(service.fundEscrow('job-123', fundingTxXDR)).rejects.toThrow(/XDR mismatch/);
+    });
+
+    it('fundEscrow submits the fee-bumped funding tx and flips status to FUNDED', async () => {
+      stellarServer.loadAccount.mockResolvedValueOnce(makeHostAccountMock());
+      const { fundingTxXDR, fundingTxHash } = await service.buildFundingTransaction(
+        hostKeypair.publicKey(), escrowKeypair.publicKey(), '25'
+      );
+      (StellarEscrowModel.findByJobId as jest.Mock).mockResolvedValueOnce(
+        buildMockEscrowRecord({ status: 'CREATED', funding_tx_hash: fundingTxHash })
+      );
+      (StellarEscrowModel.updateStatus as jest.Mock).mockResolvedValueOnce(true);
+
+      const hash = await service.fundEscrow('job-123', fundingTxXDR);
+
+      expect(hash).toBe('stellar-tx-hash-abc');
+      expect(stellarServer.submitTransaction).toHaveBeenCalledTimes(1);
+      expect(StellarEscrowModel.updateStatus).toHaveBeenCalledWith(
+        'job-123', 'FUNDED', expect.objectContaining({ fund_tx_hash: 'stellar-tx-hash-abc' })
+      );
+    });
+  });
 });

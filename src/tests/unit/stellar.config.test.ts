@@ -2,6 +2,12 @@ import { Networks } from '@stellar/stellar-sdk';
 
 // We test the config module directly, so we must NOT mock it here.
 // We control env vars instead.
+//
+// dotenv is stubbed to a no-op so config.ts reads ONLY the env vars each test
+// sets explicitly — otherwise dotenv.config() would reload the real .env and
+// clobber `delete process.env[...]`, making the "default" assertions depend on
+// whatever STELLAR_NETWORK the local .env happens to hold.
+jest.mock('dotenv', () => ({ config: jest.fn() }));
 
 describe('StellarConfig', () => {
   const ORIGINAL_ENV = process.env;
