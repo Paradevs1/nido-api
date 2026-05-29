@@ -1,0 +1,29 @@
+# Local-only MongoDB for development / 37 Graus demo rehearsal.
+# Fully isolated from production: it is a separate mongod instance with its own
+# named volume, reachable only from localhost. Point MONGODB_URI at it (see below)
+# and the app uses the "bounties" database on THIS container — never the prod cluster.
+#
+#   docker compose up -d mongo     # start
+#   docker compose down            # stop (keeps data)
+#   docker compose down -v         # stop + wipe the local volume
+#
+# MONGODB_URI=mongodb://localhost:27017/?directConnection=true
+services:
+  mongo:
+    image: mongo:7
+    container_name: nido-mongo-local
+    restart: unless-stopped
+    # Bind to localhost only so the demo DB is never exposed on the network.
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - nido-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  nido-mongo-data:
+    name: nido-mongo-local-data

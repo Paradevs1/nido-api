@@ -13,7 +13,10 @@
     "create-admin": "ts-node scripts/create-admin.ts",
     "migrate:creator-profile": "npx ts-node scripts/migrate-creator-profile-fields.ts",
     "delete-hosts-without-campaigns": "npx ts-node scripts/delete-hosts-without-campaigns.ts",
-    "delete-hosts-without-campaigns:dry": "npx ts-node scripts/delete-hosts-without-campaigns.ts --dry-run"
+    "delete-hosts-without-campaigns:dry": "npx ts-node scripts/delete-hosts-without-campaigns.ts --dry-run",
+    "db:up": "docker compose up -d mongo",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d mongo"
   },
   "keywords": [
     "nodejs",

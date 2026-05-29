@@ -165,6 +165,7 @@ import communityRoutes from './routes/community.routes';
 import notificationRoutes from './routes/notification.routes';
 import stellarRoutes from './routes/stellar.routes';
 import seedRoutes from './routes/seed.routes';
+import demoRoutes from './routes/demo.routes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -178,6 +179,9 @@ app.use('/api/communities', communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/stellar', stellarRoutes);
 if (process.env['SEED_SECRET']) app.use('/api/seed', seedRoutes);
+// Demo-login (sprint rehearsal): inert unless explicitly enabled. Never enable on the main prod app.
+// Rate-limited like auth since it mints valid JWTs; requires its own JWT_SECRET + isolated DB.
+if (process.env['DEMO_LOGIN_ENABLED'] === 'true') app.use('/api/demo', authLimiter, demoRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   const response: any = {

@@ -29,13 +29,16 @@ export interface JWTPayload {
   aud?: string;
 }
 
-export const generateToken = (payload: Omit<JWTPayload, 'iat' | 'exp' | 'iss' | 'aud'>): string => {
+export const generateToken = (
+  payload: Omit<JWTPayload, 'iat' | 'exp' | 'iss' | 'aud'>,
+  expiresIn: string = JWT_CONFIG.expiresIn
+): string => {
   const options = {
-    expiresIn: JWT_CONFIG.expiresIn,
+    expiresIn,
     issuer: JWT_CONFIG.issuer,
     audience: JWT_CONFIG.audience
   };
-  
+
   return jwt.sign(payload as any, JWT_CONFIG.secret, options as any);
 };
 
