@@ -14,6 +14,7 @@ import { buildFeedbackRank, buildDateSubmitRank } from '../utils/generateRanksJo
 import { JobLockModel } from '../models/JobLock';
 import { API_DELAY_TWITTER_MS, API_DELAY_INSTAGRAM_MS, API_DELAY_TIKTOK_MS, API_DELAY_YOUTUBE_MS, API_DELAY_FOLLOWERS_MS } from '../utils/consts';
 import { StellarService } from './StellarService';
+import { CctpInboundService } from './CctpInboundService';
 
 export class JobService {
   /**
@@ -768,6 +769,46 @@ export class JobService {
           results,
           timestamp: new Date(),
           message: `Job completed. ${processed} escrow(s) refunded, ${failed} failed.`,
+        };
+      } catch (error: any) {
+        return {
+          success: false,
+          processed: 0,
+          failed: 0,
+          results: [],
+          timestamp: new Date(),
+          message: `Job execution error: ${error.message}`,
+        };
+      }
+    }, {
+      success: false,
+      processed: 0,
+      failed: 0,
+      results: [],
+      timestamp: new Date(),
+      message: 'Job skipped — already running.',
+    });
+  }
+
+  public async runPendingInboundMintsJob(): Promise<{
+    success: boolean;
+    processed: number;
+    failed: number;
+    results: Array<{ jobId: string; status: 'minted' | 'pending' | 'error'; txHash?: string; error?: string }>;
+    timestamp: Date;
+    message: string;
+  }> {
+    return this.withLock('pending-inbound-mints', 5 * 60 * 1000, async () => {
+      try {
+        const cctpInbound = new CctpInboundService();
+        const { processed, failed, results } = await cctpInbound.runPendingInboundMints();
+        return {
+          success: true,
+          processed,
+          failed,
+          results,
+          timestamp: new Date(),
+          message: `Job completed. ${processed} inbound mint(s) relayed, ${failed} failed.`,
         };
       } catch (error: any) {
         return {

@@ -23,6 +23,8 @@ router.post('/run-cleanup-inactive-hosts', jobController.runCleanupInactiveHosts
 router.get('/run-cleanup-inactive-hosts', jobController.runCleanupInactiveHosts);
 router.post('/run-expired-stellar-escrows', jobController.runExpiredStellarEscrows);
 router.get('/run-expired-stellar-escrows', jobController.runExpiredStellarEscrows);
+router.post('/run-pending-inbound-mints', jobController.runPendingInboundMints);
+router.get('/run-pending-inbound-mints', jobController.runPendingInboundMints);
 
 export default router;
 

@@ -408,5 +408,21 @@ export class JobController {
       });
     }
   };
+
+  public runPendingInboundMints = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await this.jobService.runPendingInboundMintsJob();
+      res.status(result.success ? 200 : 500).json(result);
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        processed: 0,
+        failed: 0,
+        results: [],
+        timestamp: new Date(),
+        message: `Job execution error: ${error.message}`,
+      });
+    }
+  };
 }
 
