@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>NIDO — Documentação Técnica para Investidores</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">NIDO — Documentação Técnica para Investidores</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#nido-documentação-técnica-para-investidores"
+id="toc-nido-documentação-técnica-para-investidores">NIDO — Documentação
+Técnica para Investidores</a>
+<ul>
+<li><a href="#trustless-escrow-para-campanhas-b2b-sobre-stellar-l1"
+id="toc-trustless-escrow-para-campanhas-b2b-sobre-stellar-l1">Trustless
+Escrow para Campanhas B2B sobre Stellar L1</a></li>
+<li><a href="#sumário" id="toc-sumário">Sumário</a></li>
+<li><a href="#executive-summary" id="toc-executive-summary">1. Executive
+Summary</a></li>
+<li><a href="#produto-e-tração" id="toc-produto-e-tração">2. Produto e
+Tração</a>
+<ul>
+<li><a href="#o-que-a-nido-entrega" id="toc-o-que-a-nido-entrega">2.1 O
+que a NIDO entrega</a></li>
+<li><a href="#diferenciais-e-impacto-gerado"
+id="toc-diferenciais-e-impacto-gerado">2.2 Diferenciais e impacto
+gerado</a></li>
+<li><a href="#público-alvo" id="toc-público-alvo">2.3
+Público-alvo</a></li>
+<li><a href="#tração" id="toc-tração">2.4 Tração</a></li>
+</ul></li>
+<li><a href="#mainnet-prova-on-chain" id="toc-mainnet-prova-on-chain">3.
+Mainnet — Prova On-Chain</a>
+<ul>
+<li><a href="#escrows-reais-financiados-em-mainnet"
+id="toc-escrows-reais-financiados-em-mainnet">3.1 Escrows reais
+financiados em mainnet</a></li>
+<li><a href="#referência-histórica-validação-em-testnet-sprint-1"
+id="toc-referência-histórica-validação-em-testnet-sprint-1">3.2
+Referência histórica — Validação em testnet (Sprint 1)</a></li>
+</ul></li>
+<li><a href="#arquitetura-e-fluxos-críticos"
+id="toc-arquitetura-e-fluxos-críticos">4. Arquitetura e Fluxos
+Críticos</a>
+<ul>
+<li><a href="#arquitetura-de-alto-nível"
+id="toc-arquitetura-de-alto-nível">4.1 Arquitetura de alto
+nível</a></li>
+<li><a href="#ciclo-de-vida-do-escrow"
+id="toc-ciclo-de-vida-do-escrow">4.2 Ciclo de vida do escrow</a></li>
+<li><a href="#fluxo-1-criação-e-funding-nativo-stellar"
+id="toc-fluxo-1-criação-e-funding-nativo-stellar">4.3 Fluxo 1 — Criação
+e funding (nativo Stellar)</a></li>
+<li><a href="#fluxo-1b-funding-cross-chain-cctp-v2"
+id="toc-fluxo-1b-funding-cross-chain-cctp-v2">4.4 Fluxo 1b — Funding
+cross-chain (CCTP V2)</a></li>
+<li><a href="#fluxo-2-liberação-host-aprova-talent-recebe"
+id="toc-fluxo-2-liberação-host-aprova-talent-recebe">4.5 Fluxo 2 —
+Liberação (Host aprova, Talent recebe)</a></li>
+<li><a href="#fluxo-3-reembolso-por-expiração-de-prazo"
+id="toc-fluxo-3-reembolso-por-expiração-de-prazo">4.6 Fluxo 3 —
+Reembolso por expiração de prazo</a></li>
+<li><a href="#fluxo-4-resolução-de-disputa-arbitragem-neutra"
+id="toc-fluxo-4-resolução-de-disputa-arbitragem-neutra">4.7 Fluxo 4 —
+Resolução de disputa (arbitragem neutra)</a></li>
+</ul></li>
+<li><a href="#segurança-e-modelo-de-custódia"
+id="toc-segurança-e-modelo-de-custódia">5. Segurança e Modelo de
+Custódia</a></li>
+<li><a href="#modelo-de-negócio-e-gtm"
+id="toc-modelo-de-negócio-e-gtm">6. Modelo de Negócio e GTM</a>
+<ul>
+<li><a href="#modelo-de-receita" id="toc-modelo-de-receita">6.1 Modelo
+de receita</a></li>
+<li><a href="#canais-de-aquisição" id="toc-canais-de-aquisição">6.2
+Canais de aquisição</a></li>
+<li><a href="#síntese-de-posicionamento"
+id="toc-síntese-de-posicionamento">6.3 Síntese de
+posicionamento</a></li>
+</ul></li>
+<li><a href="#roadmap-e-investimento-pleiteado"
+id="toc-roadmap-e-investimento-pleiteado">7. Roadmap e Investimento
+Pleiteado</a>
+<ul>
+<li><a href="#status-dos-sprints-37-graus-track-a"
+id="toc-status-dos-sprints-37-graus-track-a">7.1 Status dos Sprints (37
+Graus, Track A)</a></li>
+<li><a href="#desafios-deploy-mainnet"
+id="toc-desafios-deploy-mainnet">7.2 Desafios “Deploy Mainnet”</a></li>
+<li><a href="#investimento-pleiteado"
+id="toc-investimento-pleiteado">7.3 Investimento pleiteado</a></li>
+</ul></li>
+<li><a href="#riscos-e-mitigações" id="toc-riscos-e-mitigações">8.
+Riscos e Mitigações</a></li>
+<li><a href="#anexo-a-decisões-de-produto-pdrs"
+id="toc-anexo-a-decisões-de-produto-pdrs">Anexo A — Decisões de Produto
+(PDRs)</a></li>
+<li><a href="#anexo-b-decisões-de-arquitetura-adrs"
+id="toc-anexo-b-decisões-de-arquitetura-adrs">Anexo B — Decisões de
+Arquitetura (ADRs)</a></li>
+<li><a href="#anexo-c-referência-de-endpoints-e-configuração-mainnet"
+id="toc-anexo-c-referência-de-endpoints-e-configuração-mainnet">Anexo C
+— Referência de Endpoints e Configuração Mainnet</a>
+<ul>
+<li><a
+href="#c.1-endpoints-stellar-todos-sob-authguard-e-rate-limit-por-usuário"
+id="toc-c.1-endpoints-stellar-todos-sob-authguard-e-rate-limit-por-usuário">C.1
+Endpoints Stellar (todos sob <code>authGuard</code> e rate limit por
+usuário)</a></li>
+<li><a href="#c.2-configuração-mainnet-valores-públicos"
+id="toc-c.2-configuração-mainnet-valores-públicos">C.2 Configuração
+Mainnet (valores públicos)</a></li>
+<li><a href="#c.3-contratos-cctp-soroban-domínio-27"
+id="toc-c.3-contratos-cctp-soroban-domínio-27">C.3 Contratos CCTP
+(Soroban, domínio 27)</a></li>
+<li><a href="#c.4-stack-tecnológico" id="toc-c.4-stack-tecnológico">C.4
+Stack tecnológico</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="nido-documentação-técnica-para-investidores">NIDO — Documentação
+Técnica para Investidores</h1>
+<h3 id="trustless-escrow-para-campanhas-b2b-sobre-stellar-l1">Trustless
+Escrow para Campanhas B2B sobre Stellar L1</h3>
+<blockquote>
+<p>Versão 2.1 — 2026-05-30 · Programa 37 Graus (NearX/SDF), Track A ·
+Stellar Mainnet (produção) Builder: Gustavo Fontes (<code>f0ntz</code>)
+· fontzweb3@gmail.com · Brazil Chapter (Lead: Caio Mattos) Repositórios:
+<code>github.com/Paradevs1/nido-api</code> (backend) ·
+<code>github.com/Paradevs1/nido-front</code> (frontend)</p>
+</blockquote>
+<hr />
+<h2 id="sumário">Sumário</h2>
+<ul>
+<li><a href="#1-executive-summary">1. Executive Summary</a></li>
+<li><a href="#2-produto-e-tração">2. Produto e Tração</a></li>
+<li><a href="#3-mainnet--prova-on-chain">3. Mainnet — Prova
+On-Chain</a></li>
+<li><a href="#4-arquitetura-e-fluxos-críticos">4. Arquitetura e Fluxos
+Críticos</a></li>
+<li><a href="#5-segurança-e-modelo-de-custódia">5. Segurança e Modelo de
+Custódia</a></li>
+<li><a href="#6-modelo-de-negócio-e-gtm">6. Modelo de Negócio e
+GTM</a></li>
+<li><a href="#7-roadmap-e-investimento-pleiteado">7. Roadmap e
+Investimento Pleiteado</a></li>
+<li><a href="#8-riscos-e-mitigações">8. Riscos e Mitigações</a></li>
+<li><a href="#anexo-a--decisões-de-produto-pdrs">Anexo A — Decisões de
+Produto (PDRs)</a></li>
+<li><a href="#anexo-b--decisões-de-arquitetura-adrs">Anexo B — Decisões
+de Arquitetura (ADRs)</a></li>
+<li><a
+href="#anexo-c--referência-de-endpoints-e-configuração-mainnet">Anexo C
+— Referência de Endpoints e Configuração Mainnet</a></li>
+</ul>
+<hr />
+<h2 id="executive-summary">1. Executive Summary</h2>
+<p>A NIDO é uma plataforma B2B de campanhas de marketing com escrow
+trustless sobre Stellar L1. Conecta marcas e agências (<em>Hosts</em>) a
+criadores de conteúdo e KOLs (<em>Talents</em>), transformando contratos
+de campanha em acordos on-chain invioláveis — sem que nenhuma das partes
+precise manter saldo de XLM, pagar taxa de rede ou confiar a custódia
+dos fundos a um terceiro.</p>
+<p><strong>Problema.</strong> O mercado de marketing de influência sofre
+com quebra de acordo dos dois lados: agências imobilizam capital com
+risco de não-entrega; criadores entregam e não recebem. As soluções
+on-chain existentes (contratos EVM customizados) endereçam a confiança,
+mas com taxa de rede elevada, complexidade operacional e atrito cripto
+que o cliente B2B Web2-first não absorve.</p>
+<p><strong>Solução.</strong> A NIDO usa primitivas determinísticas da L1
+da Stellar — Multisig 2-de-3, Sponsored Reserves, transações
+pré-autorizadas com TimeBounds e FeeBump — para construir um cofre
+trustless sem escrever nenhum smart contract customizado, com finalidade
+em aproximadamente 5 segundos e custo de rede inferior a US$ 0,01 por
+transação. A experiência do usuário é equivalente à de um SaaS Web2: a
+camada blockchain permanece transparente para o cliente.</p>
+<p><strong>Estado em 30/05/2026.</strong> O produto opera em mainnet. O
+ciclo completo de escrow está implementado e testado — criação, funding
+(nativo e cross-chain via CCTP V2), liberação, reembolso por expiração
+de prazo e resolução de disputa por árbitro neutro. Backend com 409
+testes automatizados em 23 suites (todos passando), rate limiting por
+usuário e chaves de escrow encriptadas em repouso (AES-256-GCM).</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>Categoria</td>
+<td>Plataforma B2B SaaS + infraestrutura de escrow trustless
+(non-custodial)</td>
+</tr>
+<tr class="even">
+<td>Blockchain</td>
+<td>Stellar L1 (mainnet) + Soroban (CCTP inbound, domínio 27)</td>
+</tr>
+<tr class="odd">
+<td>Estágio</td>
+<td>Produto em produção (beta público) e em operação na mainnet Stellar
+· Track A 37 Graus</td>
+</tr>
+<tr class="even">
+<td>Tração da plataforma</td>
+<td>+500 usuários · 300+ creators · 200+ KOLs · marcas reais como Host
+(JET Latam, CoinW, Venus, MEXC) · payouts em USDC</td>
+</tr>
+<tr class="odd">
+<td>Tração na mainnet Stellar</td>
+<td>5 escrows reais financiados (50 USDC); funding, liberação e disputa
+comprovados on-chain (§3.1)</td>
+</tr>
+<tr class="even">
+<td>Modelo de receita</td>
+<td>Planos SaaS (BASIC/CORE/ENTERPRISE) + fee de 0,5% sobre o volume
+liquidado em escrow</td>
+</tr>
+<tr class="odd">
+<td>Investimento pleiteado</td>
+<td>SCF Build Award — aproximadamente US$ 70 mil para escalar a operação
+em mainnet (§7.3)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="produto-e-tração">2. Produto e Tração</h2>
+<h3 id="o-que-a-nido-entrega">2.1 O que a NIDO entrega</h3>
+<p>Plataforma de campanhas B2B construída sobre três pilares de escrow
+trustless. Cada pilar endereça uma fricção concreta que hoje limita a
+adoção de cripto por agências e marcas.</p>
+<p><strong>1. Escrow trustless com Sponsored Reserves.</strong> O
+Treasury da NIDO patrocina 100% das reserves da conta de escrow; a conta
+existe no ledger com 0 XLM próprio e o Host deposita apenas USDC. O
+Multisig 2-de-3 garante que nem a plataforma, nem o Host, nem o Talent
+movimentem fundos isoladamente.</p>
+<p><em>Impacto:</em> o capital da campanha fica imobilizado de forma
+neutra e auditável. A NIDO não detém os fundos em nenhum momento, o que
+a mantém fora do perímetro de custodiante/transmissor de dinheiro, reduz
+exposição regulatória e remove a desconfiança que leva uma agência a
+hesitar em adiantar pagamento.</p>
+<p><strong>2. Experiência sem taxa de rede para o usuário.</strong> A
+conta de escrow tem 0 XLM; o Treasury usa FeeBump para arcar com a taxa
+de rede de toda transação (funding, liberação, reembolso e disputa).
+Host e Talent nunca precisam manter saldo de moeda nativa.</p>
+<p><em>Impacto:</em> a camada blockchain torna-se transparente. O
+cliente B2B Web2-first não precisa lidar com XLM, gas ou bridge — a
+principal barreira de adoção cripto é eliminada, permitindo um ciclo
+comercial convencional, sem etapa de educação técnica no onboarding.</p>
+<p><strong>3. Proteção contra não-entrega com TimeBounds.</strong>
+Transações pré-autorizadas com TimeBounds criam um reembolso automático
+disponível após o prazo da campanha. Se o Talent não entrega, o Host
+recupera o capital — o protocolo Stellar valida o <code>minTime</code>
+on-chain, sem dependência de a NIDO estar operante.</p>
+<p><em>Impacto:</em> o capital do Host é protegido pelo protocolo, não
+por uma garantia contratual da plataforma. O reembolso permanece
+executável mesmo em caso de indisponibilidade da NIDO, deslocando a
+confiança da plataforma para as regras determinísticas da L1.</p>
+<h3 id="diferenciais-e-impacto-gerado">2.2 Diferenciais e impacto
+gerado</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Capacidade</th>
+<th>Impacto gerado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Zero XLM para o usuário (Sponsored Reserves + FeeBump)</td>
+<td>Onboarding sem atrito cripto, reduzindo abandono e encurtando o
+ciclo de venda B2B.</td>
+</tr>
+<tr class="even">
+<td>Trustless por design (Multisig 2-de-3)</td>
+<td>NIDO como árbitro neutro, nunca custodiante — menor exposição
+regulatória e maior disposição do cliente a adiantar capital.</td>
+</tr>
+<tr class="odd">
+<td>Non-custodial (chaves nunca tocam o backend)</td>
+<td>Um eventual comprometimento do servidor não movimenta fundos —
+superfície de ataque substancialmente menor e <em>due diligence</em>
+mais simples.</td>
+</tr>
+<tr class="even">
+<td>Funding cross-chain (CCTP V2, 6 chains)</td>
+<td>O Host financia a partir da chain em que já mantém USDC (Ethereum,
+Arbitrum, Base, Polygon, Solana, Sui), removendo o atrito de aporte e
+ampliando o funil.</td>
+</tr>
+<tr class="odd">
+<td>Coexistência multichain (módulo Stellar isolado)</td>
+<td>A integração Stellar não altera os rails legados (EVM/Solana/Sui) —
+sem risco de regressão, com rollout incremental sobre uma base já em
+produção.</td>
+</tr>
+<tr class="even">
+<td>Finalidade em ~5s e taxa de rede inferior a US$ 0,01 (Stellar
+L1)</td>
+<td>Liquidação quase instantânea ao Talent, sem erosão de margem por
+gas, viabilizando inclusive campanhas de ticket baixo.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="público-alvo">2.3 Público-alvo</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Segmento</th>
+<th>Dor central</th>
+<th>Solução da NIDO</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Agências e iniciativas regionais (ex.: JET Latam, Host ativo)</td>
+<td>Capital em risco: quebra de acordo antes ou após a entrega</td>
+<td>Capital imobilizado de forma neutra e reembolso automático por
+prazo, permitindo adiantar pagamento com segurança</td>
+</tr>
+<tr class="even">
+<td>Marcas e exchanges B2B (ex.: CoinW, Venus, MEXC, Hosts ativos)</td>
+<td>Pagamentos internacionais lentos, custosos e sem
+rastreabilidade</td>
+<td>Liquidação em USDC em segundos, auditável on-chain — tesouraria
+previsível e internacional</td>
+</tr>
+<tr class="odd">
+<td>KOLs e criadores</td>
+<td>Não-recebimento após a entrega; pagamentos com dias de atraso</td>
+<td>Garantia de que o USDC já está imobilizado antes da produção;
+recebimento na aprovação</td>
+</tr>
+<tr class="even">
+<td>Projetos Web3</td>
+<td>Custo de contratos customizados; necessidade de infraestrutura
+pronta</td>
+<td>Escrow trustless como serviço, sem desenvolvimento de contrato
+próprio — adoção imediata</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tração">2.4 Tração</h3>
+<p>A tração é reportada em dois blocos distintos — a plataforma (em
+produção, com marcas e creators reais) e o módulo Stellar
+(recém-lançado, com prova on-chain em mainnet). Os blocos não são
+consolidados, para preservar a precisão de cada indicador.</p>
+<h4 id="bloco-a-plataforma-nido-em-produção-beta-público">Bloco A —
+Plataforma NIDO (em produção, beta público)</h4>
+<p>A plataforma opera em produção em escala: marcas reais publicam
+campanhas e creators recebem USDC por meio dos rails multichain
+existentes.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Indicador</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Usuários</td>
+<td>+500</td>
+</tr>
+<tr class="even">
+<td>Creators ativos</td>
+<td>300+</td>
+</tr>
+<tr class="odd">
+<td>KOLs alcançados</td>
+<td>200+</td>
+</tr>
+<tr class="even">
+<td>Marcas com campanhas ativas (Hosts)</td>
+<td>JET Latam, CoinW, Venus Protocol, MEXC, Rapidz, BH OnChain,
+TokenNation</td>
+</tr>
+<tr class="odd">
+<td>Payouts a creators (USDC)</td>
+<td>Recorrentes — maiores recebimentos: US$ 500, US$ 280, US$ 271, US$
+210, US$ 186</td>
+</tr>
+<tr class="even">
+<td>Modelo de receita</td>
+<td>Planos SaaS ativos + fee sobre volume</td>
+</tr>
+</tbody>
+</table>
+<p>A NIDO não é um MVP em busca de mercado: é um produto em produção,
+com demanda B2B validada e marcas pagando creators. O escrow trustless
+sobre Stellar entra como upgrade de infraestrutura sobre uma operação
+existente, e não como tese especulativa.</p>
+<h4 id="bloco-b-módulo-de-escrow-trustless-stellar-mainnet">Bloco B —
+Módulo de Escrow Trustless (Stellar mainnet)</h4>
+<p>Os indicadores abaixo referem-se exclusivamente ao novo fluxo de
+escrow trustless sobre Stellar — as primeiras execuções reais desse
+módulo em mainnet. Não representam a operação total da NIDO (Bloco A);
+constituem a prova de que a camada de custódia trustless funciona
+end-to-end com USDC real.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Indicador</th>
+<th>Valor</th>
+<th>Prova</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Escrows financiados em mainnet</td>
+<td>5 (4 liberados + 1 reembolsado via disputa)</td>
+<td>Hashes on-chain (§3.1)</td>
+</tr>
+<tr class="even">
+<td>Volume USDC no fluxo de escrow</td>
+<td>50 USDC</td>
+<td>StellarExpert</td>
+</tr>
+<tr class="odd">
+<td>Carteiras distintas no fluxo de escrow</td>
+<td>5 Talents + 1 Host</td>
+<td>On-chain</td>
+</tr>
+<tr class="even">
+<td>Fluxos comprovados on-chain</td>
+<td>Funding, liberação e resolução de disputa</td>
+<td>§3.1</td>
+</tr>
+<tr class="odd">
+<td>Testes automatizados (backend)</td>
+<td>409 testes em 23 suites (todos passando)</td>
+<td><code>npx jest --runInBand</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="mainnet-prova-on-chain">3. Mainnet — Prova On-Chain</h2>
+<p>O produto opera na mainnet pública da Stellar. Configuração
+verificada via script de health-check
+(<code>npm run stellar:check</code>) em 2026-05-30:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Valor (mainnet)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Rede</td>
+<td><code>STELLAR_NETWORK=mainnet</code></td>
+</tr>
+<tr class="even">
+<td>Horizon</td>
+<td><code>https://horizon.stellar.org</code></td>
+</tr>
+<tr class="odd">
+<td>Soroban RPC (CCTP)</td>
+<td><code>https://mainnet.sorobanrpc.com</code></td>
+</tr>
+<tr class="even">
+<td>USDC Issuer (Circle)</td>
+<td><code>GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN</code></td>
+</tr>
+<tr class="odd">
+<td>Treasury (sponsor e fee payer)</td>
+<td><code>GBG7UXZDEK3QG5Y3KXGIR7AB2CJKVR3DI2JY34TV2IFTOY67LAUBVA4T</code></td>
+</tr>
+<tr class="even">
+<td>Arbiter (árbitro neutro)</td>
+<td><code>GC27X2AXTFFF7UNDMBNQ55XVKRRTNO7JPLUELEMPJJDQDA57G5TW3JUE</code></td>
+</tr>
+<tr class="odd">
+<td>Encriptação de chave de escrow</td>
+<td>AES-256-GCM (round-trip validado)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="escrows-reais-financiados-em-mainnet">3.1 Escrows reais
+financiados em mainnet</h3>
+<p>Em 2026-05-30, 5 escrows foram financiados com USDC real e executados
+em ciclo completo na mainnet pública da Stellar, totalizando 50 USDC.
+Cada escrow percorreu o lifecycle completo: depósito do Host, cofre
+Multisig 2-de-3 (0 XLM próprio, reserves patrocinadas), liberação para o
+Talent ou reembolso via arbitragem, e <code>accountMerge</code>
+devolvendo as reserves ao Treasury. Todas as transações foram
+bem-sucedidas e são auditáveis on-chain (ledgers 62.805.690 a
+62.806.460).</p>
+<p>Cobertura dos fluxos críticos em mainnet:</p>
+<ul>
+<li>4 escrows liberados (<code>COMPLETED</code>): Host aprovou e Talent
+recebeu o USDC. Liberação validada — o Talent
+<code>GAABSLGD…NHXNJ</code> mantém 10 USDC em saldo.</li>
+<li>1 escrow reembolsado via disputa (<code>REFUNDED</code>): Host abriu
+disputa, o árbitro resolveu a favor do Host e o USDC foi devolvido.
+Caminho de arbitragem comprovado em mainnet.</li>
+</ul>
+<p>O reembolso por expiração de prazo (Fluxo 3) utiliza a mesma
+primitiva de pagamento ao Host já exercida no caso de disputa; sua
+automação está implementada e coberta por testes, ainda sem um evento de
+expiração isolado em mainnet.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Slot</th>
+<th>Conta de escrow</th>
+<th>Valor</th>
+<th>Status final</th>
+<th>Prova on-chain</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><code>GAAYTBS4…HC7Z</code></td>
+<td>10 USDC</td>
+<td>Liberado (Talent recebeu)</td>
+<td><a
+href="https://stellar.expert/explorer/public/tx/befc9f2025a9486e80276cb00b0a172933aab135ee03afc150abc70b2ab94864">StellarExpert</a></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><code>GDEKEYRT…EBDB</code></td>
+<td>10 USDC</td>
+<td>Liberado (Talent recebeu)</td>
+<td><a
+href="https://stellar.expert/explorer/public/tx/0292173090ec0610d6cbf1ac9a8fa62a7e4f8d7e1ee0edddb71dbaa9309fe7e8">StellarExpert</a></td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><code>GA7YFF32…CRK3</code></td>
+<td>10 USDC</td>
+<td>Liberado (Talent recebeu)</td>
+<td><a
+href="https://stellar.expert/explorer/public/tx/e70c4dd7235e7624330572c161dc0a5489f8bf6a8fcbb669969f809be35a2c4c">StellarExpert</a></td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><code>GDBG67YU…WCE2</code></td>
+<td>10 USDC</td>
+<td>Liberado (Talent recebeu)</td>
+<td><a
+href="https://stellar.expert/explorer/public/tx/2738526734ef96c92f297dcbf6db9801a7972cbfd043d0c1a756f9f3d90dc8de">StellarExpert</a></td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td><code>GBEKWXLM…XWTK</code></td>
+<td>10 USDC</td>
+<td>Reembolsado (disputa, Host)</td>
+<td><a
+href="https://stellar.expert/explorer/public/tx/b0d1e211d8dc864abb444b6c230108889ff1384f2db217203e0c1081d14351ad">StellarExpert</a></td>
+</tr>
+</tbody>
+</table>
+<p>Cada escrow é encerrado com <code>accountMerge</code>, devolvendo as
+reserves patrocinadas ao Treasury (<code>GBG7UXZD…BVA4T</code>),
+verificável no <a
+href="https://stellar.expert/explorer/public/account/GBG7UXZDEK3QG5Y3KXGIR7AB2CJKVR3DI2JY34TV2IFTOY67LAUBVA4T">StellarExpert</a>.
+Os hashes de funding completos estão disponíveis no banco para
+auditoria.</p>
+<blockquote>
+<p>Nota metodológica: os 5 escrows acima compartilham o mesmo Host,
+caracterizando validação operacional do fluxo em mainnet. A ampliação
+para usuários externos independentes está em andamento (ver §7.2,
+Desafio 3).</p>
+</blockquote>
+<h3 id="referência-histórica-validação-em-testnet-sprint-1">3.2
+Referência histórica — Validação em testnet (Sprint 1)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Conta de escrow</td>
+<td><code>GBKZYR42QJHPQWHKCZG3ZY4CGWC65WSR7VARULZRXS4I7MBQ6JVGGYJL</code></td>
+</tr>
+<tr class="even">
+<td>TX Hash</td>
+<td><code>aa9f3302a053b87c56332a88e26dfa7bc903466795e75a1af354467340ee98c4</code></td>
+</tr>
+<tr class="odd">
+<td>USDC imobilizado</td>
+<td>10 USDC, 6 reserves patrocinadas (0 XLM próprio)</td>
+</tr>
+<tr class="even">
+<td>Multisig</td>
+<td>Host W=1, Talent W=1, Arbiter W=1 (Med=2, High=2)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="arquitetura-e-fluxos-críticos">4. Arquitetura e Fluxos
+Críticos</h2>
+<h3 id="arquitetura-de-alto-nível">4.1 Arquitetura de alto nível</h3>
+<pre><code>                          Clientes
+  ┌────────────────────────────────────────────────────────┐
+  │  React / Next.js Frontend (Vercel)                      │
+  │  Freighter Wallet (Stellar) · Rabby/MetaMask (EVM)      │
+  └───────────────────────┬────────────────────────────────┘
+                          │ HTTPS + JWT Bearer (authGuard)
+                          ▼
+  ┌────────────────────────────────────────────────────────┐
+  │  Node.js / Express Backend API                          │
+  │  ┌──────────┐  ┌────────────────┐  ┌────────────────┐   │
+  │  │ Auth JWT │  │ HostController │  │ CreatorCtrl    │   │
+  │  │ + Admin  │  │ Plans/Waitlist │  │ Submissions    │   │
+  │  └──────────┘  └───────┬────────┘  └────────────────┘   │
+  │  ┌─────────────────────▼─────────────────────────────┐  │
+  │  │  StellarService  (rate-limited, per-user)         │  │
+  │  │  createEscrow · fundEscrow · release · refund     │  │
+  │  │  openDispute · resolveDispute · closeEscrowAccount│  │
+  │  └─────────────────────┬─────────────────────────────┘  │
+  │  ┌─────────────────────▼─────────────────────────────┐  │
+  │  │  CctpInboundService (cross-chain funding, V2)     │  │
+  │  └─────────────────────┬─────────────────────────────┘  │
+  │  ┌──────────────┐  ┌───▼──────────────────────────────┐ │
+  │  │  MongoDB     │  │  JobService (cron existente)      │ │
+  │  │  StellarEscrow│  │  runExpiredEscrows() + followers │ │
+  │  └──────────────┘  └──────────────────────────────────┘ │
+  │  ┌───────────────────────────────────────────────────┐  │
+  │  │  PaymentService legado (isolado): EVM/Solana/Sui  │  │
+  │  └───────────────────────────────────────────────────┘  │
+  └───────────────────────┬────────────────────────────────┘
+                          ▼
+  ┌────────────────────────────────────────────────────────┐
+  │  Stellar Mainnet                                        │
+  │  Horizon API · Soroban (CCTP forwarder, domínio 27)     │
+  │  Escrow Accounts (temp, Multisig 2-de-3, 0 XLM próprio) │
+  │  Pre-auth TXs (TimeBounds) · accountMerge no fechamento │
+  └────────────────────────────────────────────────────────┘</code></pre>
+<h3 id="ciclo-de-vida-do-escrow">4.2 Ciclo de vida do escrow</h3>
+<p><code>CREATED</code> → <code>PENDING_INBOUND_MINT</code>¹ →
+<code>FUNDED</code> → { <code>COMPLETED</code> | <code>REFUNDED</code> |
+<code>DISPUTED</code> }</p>
+<p>¹ <code>PENDING_INBOUND_MINT</code> aplica-se apenas ao funding via
+CCTP (cross-chain), enquanto se aguarda a atestação da Circle Iris e o
+mint do forwarder Soroban. O funding nativo Stellar transita diretamente
+de <code>CREATED</code> para <code>FUNDED</code>.</p>
+<h3 id="fluxo-1-criação-e-funding-nativo-stellar">4.3 Fluxo 1 — Criação
+e funding (nativo Stellar)</h3>
+<pre><code>1. Host: POST /api/stellar/escrow/create
+   { job_id, host_wallet, talent_wallet, amount, deadline }
+2. Backend (StellarService.createEscrow):
+   - gera keypair temporária do escrow (chave encriptada AES-256-GCM em repouso)
+   - beginSponsoringFutureReserves -&gt; createAccount(startingBalance:&#39;0&#39;)
+   - changeTrust(USDC) -&gt; setOptions x3 (Host/Talent/Arbiter, W=1)
+   - setOptions(thresholds: med=2, high=2)
+   - endSponsoringFutureReserves
+   - buildPreAuthTransactions: payment_xdr (-&gt;Talent) + refund_xdr (-&gt;Host, minTime=deadline)
+   - persiste StellarEscrow { status: CREATED }
+3. Host: GET /api/stellar/escrow/:jobId/funding-xdr  -&gt; XDR unsigned do depósito
+4. Host: Freighter.sign(funding_xdr)
+5. Host: POST /api/stellar/escrow/fund { host_signed_xdr }
+   - Backend envelopa em FeeBumpTransaction (Treasury arca com a taxa) -&gt; submete à Horizon
+   - status: FUNDED. USDC imobilizado. Escrow: 0 XLM próprio, reserves patrocinadas.</code></pre>
+<h3 id="fluxo-1b-funding-cross-chain-cctp-v2">4.4 Fluxo 1b — Funding
+cross-chain (CCTP V2)</h3>
+<pre><code>1. Host: POST /api/stellar/escrow/inbound/prepare { source_chain, amount }
+   - backend retorna instruções de burn (depositForBurnWithHook na chain de origem)
+2. Host queima USDC na chain de origem (Ethereum/Arbitrum/Base/Polygon/Solana/Sui)
+3. Host: POST /api/stellar/escrow/inbound/register { burn_tx_hash }
+   - status: PENDING_INBOUND_MINT
+4. Backend aguarda atestação da Circle Iris (V2)
+5. POST /api/stellar/escrow/inbound/relay (permissionless)
+   - chama mint_and_forward(message, attestation) no forwarder Soroban (domínio 27)
+   - USDC cunhado diretamente na conta de escrow -&gt; status: FUNDED</code></pre>
+<h3 id="fluxo-2-liberação-host-aprova-talent-recebe">4.5 Fluxo 2 —
+Liberação (Host aprova, Talent recebe)</h3>
+<pre><code>Talent entrega -&gt; Host revisa e aprova
+1. GET /api/stellar/escrow/:jobId/payment-xdr -&gt; XDR unsigned (escrow -&gt; Talent)
+2. Host: Freighter.sign(payment_xdr)
+3. POST /api/stellar/escrow/release { host_signed_xdr }
+   - backend adiciona a assinatura do Arbiter (fecha o threshold 2-de-3)
+   - FeeBumpTransaction (Treasury arca com a taxa; escrow tem 0 XLM)
+   - submete à Horizon -&gt; Talent recebe USDC em menos de 5s
+   - closeEscrowAccount: accountMerge devolve o XLM patrocinado ao Treasury
+   - status: COMPLETED</code></pre>
+<h3 id="fluxo-3-reembolso-por-expiração-de-prazo">4.6 Fluxo 3 —
+Reembolso por expiração de prazo</h3>
+<pre><code>JobService.runExpiredEscrows() (cron):
+  busca StellarEscrow { status: FUNDED, deadline &lt; now }
+  verifica on-chain via Horizon -&gt; notifica o Host (TimeBound de reembolso ativo)
+Host solicita reembolso:
+  GET /api/stellar/escrow/:jobId/refund-xdr -&gt; Host assina (Freighter)
+  POST /api/stellar/escrow/refund { host_signed_xdr }
+   - o protocolo Stellar valida o minTime (TimeBound) on-chain
+   - Arbiter assina -&gt; threshold 2 -&gt; FeeBump -&gt; submete
+   - accountMerge -&gt; status: REFUNDED. Host recupera o USDC.</code></pre>
+<h3 id="fluxo-4-resolução-de-disputa-arbitragem-neutra">4.7 Fluxo 4 —
+Resolução de disputa (arbitragem neutra)</h3>
+<pre><code>Host recusa a entrega; Talent discorda -&gt; disputa
+1. POST /api/stellar/dispute { job_id, reason, initiator } -&gt; status: DISPUTED
+2. GET /api/stellar/admin/disputes (adminGuard) -&gt; árbitro lista as disputas
+3. Árbitro revisa evidências -&gt; POST /api/stellar/admin/resolve { winner: HOST|TALENT }
+   - backend assina (Arbiter) o XDR vencedor e persiste dispute_resolution_xdr
+4. Parte vencedora: GET /escrow/:jobId/dispute-xdr -&gt; assina (Freighter)
+5. POST /api/stellar/dispute/claim { winner_signed_xdr }
+   - threshold 2-de-3 fechado -&gt; FeeBump -&gt; submete -&gt; accountMerge
+   - USDC transferido à parte vencedora; log auditável no MongoDB</code></pre>
+<hr />
+<h2 id="segurança-e-modelo-de-custódia">5. Segurança e Modelo de
+Custódia</h2>
+<p>A segurança não é uma camada acessória, e sim o núcleo do produto.
+Toda a operação foi desenhada sobre um princípio: abstrair a
+complexidade cripto do usuário sem nunca assumir o controle dos seus
+fundos. A tabela abaixo associa cada mecanismo ao risco concreto que ele
+elimina.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Mecanismo</th>
+<th>Risco eliminado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Custódia — Multisig 2-de-3 (Host + Talent + Arbiter, W=1 cada;
+threshold 2)</td>
+<td>Remove a NIDO do papel de custodiante: nenhuma parte movimenta
+fundos isoladamente, eliminando ponto único de comprometimento e o
+enquadramento como transmissor de dinheiro.</td>
+</tr>
+<tr class="even">
+<td>Chaves do usuário — assinatura via Freighter (nunca tocam o
+backend)</td>
+<td>Um vazamento do servidor não concede acesso aos fundos do usuário: a
+chave privada nunca está sob responsabilidade da plataforma
+(ADR-002).</td>
+</tr>
+<tr class="odd">
+<td>Chave do escrow — encriptada em repouso
+(<code>secret_key_encrypted</code>, AES-256-GCM; masterWeight sem chave
+operável)</td>
+<td>A conta de escrow é inoperável fora do multisig: mesmo com acesso ao
+banco, não há como destravar o cofre.</td>
+</tr>
+<tr class="even">
+<td>Reembolso — pré-autorização + TimeBounds
+(<code>minTime = deadline</code>, validado on-chain)</td>
+<td>Capital do Host protegido pelo protocolo: o reembolso permanece
+executável mesmo com a NIDO indisponível (ADR-004).</td>
+</tr>
+<tr class="odd">
+<td>Autenticação — JWT + adminGuard (todas as rotas; árbitro
+isolado)</td>
+<td>Superfície administrativa segregada da de usuário: a arbitragem não
+é acessível por contas comuns.</td>
+</tr>
+<tr class="even">
+<td>Rate limiting por usuário (chave = <code>userId</code> do JWT, não
+IP)</td>
+<td>Protege o Treasury de exaustão de reserves e mitiga abuso, sem
+penalizar usuários que compartilham um mesmo IP.</td>
+</tr>
+<tr class="odd">
+<td>Fee sponsorship — FeeBump via Treasury</td>
+<td>A conta de escrow opera com 0 XLM e o usuário não paga taxa de rede:
+é a abstração que viabiliza a experiência Web2 (ADR-003).</td>
+</tr>
+<tr class="even">
+<td>Consistência — verificação on-chain via Horizon (antes de toda
+liberação/reembolso)</td>
+<td>O banco nunca é fonte de verdade sobre fundos: não há liberação
+baseada em estado local divergente do ledger.</td>
+</tr>
+<tr class="odd">
+<td>CCTP relay permissionless (<code>mint_and_forward</code>, finalidade
+standard)</td>
+<td>Funding cross-chain sem custódia intermediária nem bridge: USDC
+nativo de ponta a ponta, sem risco de wrapped token.</td>
+</tr>
+</tbody>
+</table>
+<p>Hardening previsto para escala (roadmap): migração da chave do
+Arbiter para KMS/HSM (atualmente encriptada em ambiente isolado),
+Horizon privada com SLA e alerta automático de saldo do Treasury abaixo
+de 20%.</p>
+<hr />
+<h2 id="modelo-de-negócio-e-gtm">6. Modelo de Negócio e GTM</h2>
+<h3 id="modelo-de-receita">6.1 Modelo de receita</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fonte</th>
+<th>Mecanismo</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fee de escrow</td>
+<td>0,5% sobre o volume USDC liquidado via Stellar</td>
+<td>Ativo em mainnet</td>
+</tr>
+<tr class="even">
+<td>Planos SaaS</td>
+<td>BASIC / CORE / ENTERPRISE (ativos nos rails legados)</td>
+<td>Em produção</td>
+</tr>
+<tr class="odd">
+<td>Fee de campanha</td>
+<td>Taxa fixa por campanha com pagamento via Stellar</td>
+<td>Mainnet</td>
+</tr>
+</tbody>
+</table>
+<p>Sobre micropagamento (x402): o fluxo da NIDO é humano-para-humano (o
+Host avalia subjetivamente a entrega do Talent) e o cliente B2B opera
+com contratos, faturas e assinaturas — um débito por requisição é
+incompatível com esse ciclo comercial. O x402 é considerado um vetor
+futuro (exposição de API paga para automação agentic), fora do escopo
+atual.</p>
+<h3 id="canais-de-aquisição">6.2 Canais de aquisição</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Canal</th>
+<th>Tática</th>
+<th>Meta</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Base de Hosts ativos</td>
+<td>Migrar marcas que já rodam campanhas (JET Latam, CoinW, Venus, MEXC)
+para o fluxo de escrow trustless</td>
+<td>Converter demanda existente em volume on-chain</td>
+</tr>
+<tr class="even">
+<td>Base de creators (300+)</td>
+<td>Creators como primeiros usuários do escrow Stellar (dogfooding)</td>
+<td>Liquidez de oferta no fluxo trustless</td>
+</tr>
+<tr class="odd">
+<td>Comunicação pública (X)</td>
+<td>Publicação periódica de métricas com transações on-chain como
+prova</td>
+<td>Credibilidade e awareness</td>
+</tr>
+<tr class="even">
+<td>Comunidade Stellar BR</td>
+<td>Presença em Telegram e Discord</td>
+<td>Awareness</td>
+</tr>
+<tr class="odd">
+<td>Rede 37 Graus</td>
+<td>Mentores SDF e introduções B2B no Rio</td>
+<td>Pipeline de leads qualificados</td>
+</tr>
+</tbody>
+</table>
+<h3 id="síntese-de-posicionamento">6.3 Síntese de posicionamento</h3>
+<p>Configure um escrow de campanha em poucos minutos. O criador recebe
+USDC automaticamente quando a entrega é aprovada; se o prazo expira sem
+entrega, o Host recupera o capital de forma automática e sem depender de
+terceiros. Sem gas e sem XLM para o usuário, liquidação auditável
+on-chain e internacional em segundos.</p>
+<hr />
+<h2 id="roadmap-e-investimento-pleiteado">7. Roadmap e Investimento
+Pleiteado</h2>
+<h3 id="status-dos-sprints-37-graus-track-a">7.1 Status dos Sprints (37
+Graus, Track A)</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Sprint</th>
+<th>Período</th>
+<th>Status</th>
+<th>Entregáveis-chave</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1 — Foundation</td>
+<td>04–11/05</td>
+<td>Concluído</td>
+<td>StellarService: Sponsored Reserves + Multisig 2-de-3 + FeeBump;
+escrow em testnet</td>
+</tr>
+<tr class="even">
+<td>2 — Global Payments</td>
+<td>11–18/05</td>
+<td>Concluído</td>
+<td>Liberação + reembolso; integração Freighter; UI do Host</td>
+</tr>
+<tr class="odd">
+<td>3 — Dispute &amp; B2B</td>
+<td>18–25/05</td>
+<td>Concluído</td>
+<td>Disputa + resolução admin; <code>runExpiredEscrows</code>;
+accountMerge; UI Talent/Arbiter</td>
+</tr>
+<tr class="even">
+<td>4 — Scale &amp; Mainnet</td>
+<td>25/05–01/06</td>
+<td>Em curso</td>
+<td>Mainnet em produção; 5 escrows reais (50 USDC); CCTP inbound;
+documentação de investidor</td>
+</tr>
+<tr class="odd">
+<td>5 — Stellar Village</td>
+<td>08–11/06</td>
+<td>Planejado</td>
+<td>Pitch presencial (Rio); demonstração ao vivo</td>
+</tr>
+</tbody>
+</table>
+<h3 id="desafios-deploy-mainnet">7.2 Desafios “Deploy Mainnet”</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Desafio</th>
+<th>Descrição</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1 — Produto ao vivo na mainnet</td>
+<td>Publicar e comprovar o produto na mainnet Stellar</td>
+<td>Concluído — 5 escrows reais on-chain (§3.1)</td>
+</tr>
+<tr class="even">
+<td>2 — Materiais de apresentação</td>
+<td>Pitch deck, landing page e documentação técnica</td>
+<td>Em curso — este documento</td>
+</tr>
+<tr class="odd">
+<td>3 — 5 usuários reais na mainnet</td>
+<td>5 carteiras ativas em mainnet</td>
+<td>Em curso — 5 Talents distintos com escrow real (§3.1); validação com
+usuários externos independentes em andamento</td>
+</tr>
+<tr class="even">
+<td>4 — GTM e logística do Village</td>
+<td>Plano de crescimento, viagem e aplicação SCF</td>
+<td>Em curso — viagem ao Rio confirmada; aplicação SCF a submeter</td>
+</tr>
+</tbody>
+</table>
+<h3 id="investimento-pleiteado">7.3 Investimento pleiteado</h3>
+<p>Aplicação ao SCF Build Award (Stellar Community Fund), no montante
+aproximado de US$ 70 mil, para escalar a operação de escrow trustless em
+mainnet. Valor e objetivo detalhados em documento SCF dedicado;
+submissão pendente.</p>
+<p>Uso de recursos previsto:</p>
+<ul>
+<li>Engenharia: hardening de produção e escala do módulo de escrow.</li>
+<li>Segurança: migração da chave do Arbiter para KMS/HSM e alerta
+automático de saldo do Treasury.</li>
+<li>Infraestrutura: Horizon privada com SLA e Soroban RPC dedicado
+(CCTP).</li>
+<li>Comercial: conversão da base de Hosts ativos (JET Latam, CoinW,
+Venus, MEXC) para o fluxo de escrow trustless.</li>
+</ul>
+<hr />
+<h2 id="riscos-e-mitigações">8. Riscos e Mitigações</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Risco</th>
+<th>Probabilidade</th>
+<th>Impacto</th>
+<th>Mitigação</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Esgotamento de XLM do Treasury (sponsor e taxas)</td>
+<td>Baixa</td>
+<td>Alto</td>
+<td>Alerta abaixo de 20%; reposição imediata; rate limit anti-burst na
+criação</td>
+</tr>
+<tr class="even">
+<td>Resistência de clientes B2B ao Freighter</td>
+<td>Alta</td>
+<td>Alto</td>
+<td>Onboarding dedicado; CCTP permite financiar a partir de chain
+familiar</td>
+</tr>
+<tr class="odd">
+<td>Chave do Arbiter fora de KMS/HSM</td>
+<td>Baixa</td>
+<td>Crítico</td>
+<td>Encriptada em ambiente isolado; migração para KMS no roadmap</td>
+</tr>
+<tr class="even">
+<td>Pré-autorização inválida após mudança de estado on-chain</td>
+<td>Baixa</td>
+<td>Alto</td>
+<td>Verificação on-chain via Horizon antes de toda
+liberação/reembolso</td>
+</tr>
+<tr class="odd">
+<td>Rate limit da Horizon pública</td>
+<td>Baixa</td>
+<td>Médio</td>
+<td>Retry com backoff; avaliação de Horizon privada com SLA</td>
+</tr>
+<tr class="even">
+<td>Atestação da Iris (CCTP) lenta ou com falha</td>
+<td>Média</td>
+<td>Médio</td>
+<td>Funding nativo Stellar como caminho padrão; CCTP é opcional</td>
+</tr>
+<tr class="odd">
+<td>Conversão lenta dos Hosts ativos para o escrow</td>
+<td>Média</td>
+<td>Médio</td>
+<td>Base de marcas já em produção reduz o risco de aquisição; o foco é
+migração, não prospecção do zero</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="anexo-a-decisões-de-produto-pdrs">Anexo A — Decisões de Produto
+(PDRs)</h2>
+<p><strong>PDR-001 — Multisig 2-de-3 com Sponsored Reserves como
+mecanismo de escrow.</strong> Conta temporária criada com
+<code>beginSponsoringFutureReserves</code> (0 XLM),
+<code>setOptions</code> com thresholds med/high = 2 e três signatários
+externos W=1 (Host/Talent/Arbiter). Keypair encriptado após o setup.
+<em>Alternativa rejeitada:</em> smart contract Soroban customizado para
+custódia. <em>Justificativa:</em> primitivas L1 são determinísticas,
+auditáveis e suficientes, com menor superfície de ataque que um contrato
+customizado.</p>
+<p><strong>PDR-002 — Sponsored Reserves + FeeBump para experiência sem
+atrito.</strong> Escrow criado com <code>startingBalance: '0'</code>; o
+Treasury envelopa as taxas em FeeBump. <em>Justificativa:</em> clientes
+B2B são Web2-first; qualquer exigência de XLM é barreira de adoção.
+Custo por escrow inferior a US$ 0,01.</p>
+<p><strong>PDR-003 — TimeBounds + pré-autorização para proteção contra
+não-entrega.</strong> Dois XDRs pré-autorizados:
+<code>payment_xdr</code> (Talent, imediato) e <code>refund_xdr</code>
+(Host, <code>minTime=deadline</code>). <em>Justificativa:</em> validados
+on-chain; o Host recupera o capital mesmo se a NIDO ficar
+indisponível.</p>
+<p><strong>PDR-004 — MongoDB com extensão de schema (não
+disruptiva).</strong> Coleção <code>stellar_escrows</code> e campos
+opcionais, sem migração de banco. <em>Justificativa:</em> plataforma em
+produção; migração seria risco desnecessário. Consultas sobre fundos
+sempre verificam o estado on-chain.</p>
+<p><strong>PDR-005 — Coexistência com a infraestrutura multichain
+legada.</strong> Rotas <code>/api/stellar/*</code> totalmente isoladas
+do <code>PaymentService</code> (EVM/Solana/Sui). <em>Justificativa:</em>
+rollout incremental, sem risco de regressão.</p>
+<p><strong>PDR-006 — Funding cross-chain via CCTP V2 (não
+bridge).</strong> O Host pode financiar a partir de 6 chains queimando
+USDC nativo; o mint na conta de escrow ocorre via forwarder Soroban.
+<em>Justificativa:</em> USDC nativo de ponta a ponta (sem wrapped token,
+sem risco de bridge), ampliando o funil sem atrito.</p>
+<p><strong>PDR-007 — Track A no 37 Graus.</strong> Produto com MVP em
+operação; a integração Stellar é expansão. Classificação coerente com o
+estágio real e competitiva nos critérios de escala.</p>
+<hr />
+<h2 id="anexo-b-decisões-de-arquitetura-adrs">Anexo B — Decisões de
+Arquitetura (ADRs)</h2>
+<p><strong>ADR-001 — <code>StellarService</code> como camada de
+abstração de chain.</strong> Encapsula toda a interação com a Stellar
+SDK; os controllers roteiam por <code>payment_chain</code>.
+<em>Rejeitado:</em> lógica <code>if (chain === 'stellar')</code>
+dispersa nos controllers, por acoplamento e impossibilidade de teste
+isolado.</p>
+<p><strong>ADR-002 — XDR gerado no backend, assinado no frontend
+(non-custodial).</strong> O backend monta o XDR unsigned, o Freighter
+assina, e o backend aplica FeeBump e submete. As chaves do usuário nunca
+tocam o servidor.</p>
+<p><strong>ADR-003 — Sponsored Reserves + FeeBump via keypair do
+Treasury.</strong> <code>beginSponsoringFutureReserves</code> +
+<code>createAccount(startingBalance:'0')</code>; o Treasury assina o
+FeeBump de toda transação subsequente.</p>
+<p><strong>ADR-004 — Pré-autorização para liberação/reembolso/disputa
+sem custódia.</strong> XDRs completos persistidos no MongoDB; a execução
+requer apenas o fechamento do threshold 2-de-3. A NIDO nunca detém
+controle unilateral.</p>
+<p><strong>ADR-005 — <code>JobService</code> existente como worker de
+TimeBounds.</strong> <code>runExpiredEscrows()</code> adicionado ao cron
+existente: detecta prazos vencidos, verifica on-chain e notifica o Host.
+Sem novo processo a manter.</p>
+<p><strong>ADR-006 — MongoDB com <code>StellarEscrow</code> e
+accountMerge no fechamento.</strong> <code>closeEscrowAccount</code>
+executa <code>accountMerge</code> na liberação/reembolso/disputa,
+devolvendo o XLM patrocinado ao Treasury.</p>
+<p><strong>ADR-007 — <code>CctpInboundService</code> para funding
+cross-chain.</strong> Serviço dedicado orquestra burn, atestação da Iris
+e <code>mint_and_forward</code> no forwarder Soroban (domínio 27). Relay
+permissionless; finalidade standard por padrão.</p>
+<hr />
+<h2 id="anexo-c-referência-de-endpoints-e-configuração-mainnet">Anexo C
+— Referência de Endpoints e Configuração Mainnet</h2>
+<h3
+id="c.1-endpoints-stellar-todos-sob-authguard-e-rate-limit-por-usuário">C.1
+Endpoints Stellar (todos sob <code>authGuard</code> e rate limit por
+usuário)</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Endpoint</th>
+<th>Método</th>
+<th>Responsabilidade</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/api/stellar/escrow/create</code></td>
+<td>POST</td>
+<td>Cria o setup do escrow (sponsored + multisig + pré-autorização)</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/escrow/:jobId/funding-xdr</code></td>
+<td>GET</td>
+<td>XDR unsigned do depósito (Host assina)</td>
+</tr>
+<tr class="odd">
+<td><code>/api/stellar/escrow/fund</code></td>
+<td>POST</td>
+<td>Submete o funding assinado (FeeBump)</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/escrow/inbound/prepare</code></td>
+<td>POST</td>
+<td>Prepara o funding CCTP (instruções de burn)</td>
+</tr>
+<tr class="odd">
+<td><code>/api/stellar/escrow/inbound/register</code></td>
+<td>POST</td>
+<td>Registra a burn tx da chain de origem</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/escrow/inbound/relay</code></td>
+<td>POST</td>
+<td><code>mint_and_forward</code> no forwarder Soroban</td>
+</tr>
+<tr class="odd">
+<td><code>/api/stellar/escrow/:jobId/payment-xdr</code></td>
+<td>GET</td>
+<td>XDR unsigned da liberação (Talent)</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/escrow/:jobId/refund-xdr</code></td>
+<td>GET</td>
+<td>XDR unsigned do reembolso (TimeBound)</td>
+</tr>
+<tr class="odd">
+<td><code>/api/stellar/escrow/release</code></td>
+<td>POST</td>
+<td>Host aprova; backend fecha o threshold e submete</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/escrow/refund</code></td>
+<td>POST</td>
+<td>Reembolso após expiração do prazo</td>
+</tr>
+<tr class="odd">
+<td><code>/api/stellar/escrow/:jobId/status</code></td>
+<td>GET</td>
+<td>Status em tempo real via Horizon</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/dispute</code></td>
+<td>POST</td>
+<td>Abre disputa (evidência e initiator)</td>
+</tr>
+<tr class="odd">
+<td><code>/api/stellar/escrow/:jobId/dispute-xdr</code></td>
+<td>GET</td>
+<td>XDR de resolução para a parte vencedora</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/dispute/claim</code></td>
+<td>POST</td>
+<td>Parte vencedora reivindica os fundos</td>
+</tr>
+<tr class="odd">
+<td><code>/api/stellar/admin/disputes</code></td>
+<td>GET</td>
+<td>(adminGuard) Lista as disputas abertas</td>
+</tr>
+<tr class="even">
+<td><code>/api/stellar/admin/resolve</code></td>
+<td>POST</td>
+<td>(adminGuard) Árbitro resolve (winner: HOST/TALENT)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c.2-configuração-mainnet-valores-públicos">C.2 Configuração
+Mainnet (valores públicos)</h3>
+<pre><code>STELLAR_NETWORK          = mainnet
+Horizon                  = https://horizon.stellar.org
+Soroban RPC              = https://mainnet.sorobanrpc.com
+USDC Issuer (Circle)     = GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+Treasury (público)       = GBG7UXZDEK3QG5Y3KXGIR7AB2CJKVR3DI2JY34TV2IFTOY67LAUBVA4T
+Arbiter (público)        = GC27X2AXTFFF7UNDMBNQ55XVKRRTNO7JPLUELEMPJJDQDA57G5TW3JUE</code></pre>
+<h3 id="c.3-contratos-cctp-soroban-domínio-27">C.3 Contratos CCTP
+(Soroban, domínio 27)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Contrato</th>
+<th>Mainnet</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Token Messenger Minter</td>
+<td><code>CAE2G5Z77UP7GYPYGFOWFGW7C7J6I4YP2AFGSADRKQY62SYUFLPNFTXL</code></td>
+</tr>
+<tr class="even">
+<td>Message Transmitter</td>
+<td><code>CACMENFFJPJMSDAJQLX4R7K3SFZIW2LJSE3R2UMLGSWHFHS353FVXAZV</code></td>
+</tr>
+<tr class="odd">
+<td>CCTP Forwarder</td>
+<td><code>CBZL2IH7F6BIDAA3WBNXYKIXSATJGMSW7K5P5MJ6STX5RXN47TZJDF5T</code></td>
+</tr>
+</tbody>
+</table>
+<p>Chains de origem suportadas (CCTP): Ethereum (domínio 0), Arbitrum
+(3), Solana (5), Base (6), Polygon PoS (7), Sui (8).</p>
+<h3 id="c.4-stack-tecnológico">C.4 Stack tecnológico</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Camada</th>
+<th>Tecnologia</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Escrow L1</td>
+<td>Stellar <code>setOptions</code> + Multisig 2-de-3 +
+<code>TimeBounds</code></td>
+</tr>
+<tr class="even">
+<td>SDK</td>
+<td><code>@stellar/stellar-sdk</code> v15 ·
+<code>@stellar/freighter-api</code></td>
+</tr>
+<tr class="odd">
+<td>CCTP inbound</td>
+<td>Soroban (forwarder) + Circle Iris V2</td>
+</tr>
+<tr class="even">
+<td>Backend</td>
+<td>Node.js 20+ / TypeScript / Express</td>
+</tr>
+<tr class="odd">
+<td>Banco de dados</td>
+<td>MongoDB / Mongoose</td>
+</tr>
+<tr class="even">
+<td>Frontend</td>
+<td>React 19 / Next.js 15 (Vercel)</td>
+</tr>
+<tr class="odd">
+<td>Cron</td>
+<td><code>JobService</code> (<code>runExpiredEscrows</code>)</td>
+</tr>
+<tr class="even">
+<td>Testes</td>
+<td>Jest — 409 testes em 23 suites</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>NIDO — Plataforma B2B de campanhas com trustless escrow sobre
+Stellar L1.</em> <em>Programa 37 Graus — NearX/SDF · Track A · 2026 ·
+Mainnet em produção.</em></p>
+</body>
+</html>
