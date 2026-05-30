@@ -128,6 +128,15 @@ export class StellarEscrowModel {
     return result.modifiedCount > 0;
   }
 
+  static async update(jobId: string, fields: Partial<IStellarEscrow>): Promise<boolean> {
+    const collection = await this.getCollection();
+    const result = await collection.updateOne(
+      { job_id: jobId },
+      { $set: { ...fields, updated_at: new Date() } }
+    );
+    return result.modifiedCount > 0;
+  }
+
   static async findDisputed(): Promise<IStellarEscrow[]> {
     const collection = await this.getCollection();
     return await collection

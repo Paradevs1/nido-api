@@ -10,6 +10,11 @@ import { encryptSecret, decryptSecret } from '../utils/stellar-crypto';
 
 const FEE_BUMP_FEE = '1000'; // 10x base fee, treasury pays
 
+// Dispute resolution XDR is built by the arbiter but signed by the winner later
+// in Freighter — needs a long timebound so it doesn't expire (tx_too_late) while
+// the winner takes a few minutes to claim. 7 days.
+const DISPUTE_CLAIM_WINDOW_SECONDS = 60 * 60 * 24 * 7;
+
 import { stellarConfig, stellarServer } from '../config/stellar';
 import { StellarUtil } from '../utils/stellar.util';
 import {
@@ -228,7 +233,9 @@ export class StellarService {
       .addOperation(
         Operation.payment({ destination: escrowPublicKey, asset: usdcAsset, amount })
       )
-      .setTimeout(stellarConfig.defaults.timeout)
+      // Generous window so the host has time to sign in Freighter; the XDR is
+      // (re)built right before signing via getFundingXDR, so it won't go stale.
+      .setTimeout(600)
       .build();
 
     return {
@@ -249,9 +256,21 @@ export class StellarService {
     if (escrow.status !== EscrowStatus.CREATED) {
       throw new Error(`Escrow is not awaiting funding (current: ${escrow.status})`);
     }
-    if (!escrow.funding_tx_xdr) throw new Error('Funding XDR not available');
+    // Rebuild the funding tx fresh: the one stored at create time carries a
+    // sequence + timebound that expire (tx_too_late) if the host doesn't sign
+    // promptly. Re-derive from the current host account state and persist the
+    // new hash so fundEscrow's hash guard still matches.
+    const funding = await this.buildFundingTransaction(
+      escrow.host_public_key,
+      escrow.escrow_public_key,
+      escrow.amount
+    );
+    await StellarEscrowModel.update(jobId, {
+      funding_tx_xdr: funding.fundingTxXDR,
+      funding_tx_hash: funding.fundingTxHash,
+    });
     return {
-      fundingTxXDR: escrow.funding_tx_xdr,
+      fundingTxXDR: funding.fundingTxXDR,
       escrowPublicKey: escrow.escrow_public_key,
       amount: escrow.amount,
     };
@@ -699,7 +718,10 @@ export class StellarService {
             amount: escrow.amount,
           })
         )
-        .setTimeout(stellarConfig.defaults.timeout)
+        // Generous claim window: this XDR is generated now but the winner signs it
+        // later in Freighter. The default 180s timeout caused tx_too_late if the
+        // host took >3min to claim. 7 days mirrors the talent branch (deadline-bound).
+        .setTimeout(DISPUTE_CLAIM_WINDOW_SECONDS)
         .build();
       winnerPublicKey = escrow.host_public_key;
     }
