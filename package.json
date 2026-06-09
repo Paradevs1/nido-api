@@ -1,7 +1,7 @@
 {
-  "name": "bounties-api",
-  "version": "1.0.0",
-  "description": "API REST com Node.js, TypeScript, Express e MongoDB",
+  "name": "nido-api",
+  "version": "2.0.0",
+  "description": "NIDO — plataforma B2B de campanhas com escrow trustless sobre Stellar L1 (Node.js, TypeScript, Express, MongoDB)",
   "main": "dist/app.js",
   "scripts": {
     "build": "tsc",

@@ -27,7 +27,7 @@ export class EmailService {
     const mailOptions = {
       from: process.env['GMAIL_USER'],
       to: email,
-      subject: 'Bounties - Email Verification Code',
+      subject: 'NIDO - Email Verification Code',
       html: `
         <!DOCTYPE html>
         <html>
@@ -79,7 +79,7 @@ export class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Bounties - Email Verification</h1>
+              <h1>NIDO - Email Verification</h1>
             </div>
             <div class="content">
               <p>Hello,</p>

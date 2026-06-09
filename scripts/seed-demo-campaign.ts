@@ -1,5 +1,5 @@
 /**
- * Seed: cria campanha demo fresca para o Google Meet
+ * Seed: cria a campanha de demonstração ao vivo (Stellar Village / pitch).
  * Uso: railway run npx ts-node scripts/seed-demo-campaign.ts
  */
 
@@ -30,13 +30,13 @@ async function main() {
   await campaigns.insertOne({
     _id: DEMO_CAMPAIGN_ID,
     host_id: DEMO_HOST_ID,
-    title: 'NIDO Demo — Escrow Stellar (37 Graus)',
-    about_project: 'Campanha demo do hackathon 37 Graus para testar o fluxo completo de escrow Stellar: criação multisig 2-de-3, depósito USDC testnet e liberação via Freighter.',
+    title: 'NIDO — Campanha Demo · Escrow Stellar',
+    about_project: 'Demonstração do fluxo NIDO de escrow trustless sobre Stellar: cofre multisig 2-de-3 com reserves patrocinadas, depósito em USDC e liberação ao creator via Freighter — sem gas e sem XLM para o usuário.',
     what_we_need: 'Conecte o Freighter, crie o escrow, assine a liberação.',
     content_type: 'post',
     content_pillars: 'web3,stellar,blockchain',
-    benefits: 'USDC testnet via Stellar Escrow',
-    requirements: 'Freighter wallet instalado e configurado para testnet',
+    benefits: 'Pagamento em USDC liquidado on-chain via escrow trustless NIDO',
+    requirements: 'Carteira Freighter instalada e conectada à rede da campanha',
     status: 'active',
     payment_chain: 'stellar',
     payment_token: 'USDC',
@@ -49,8 +49,8 @@ async function main() {
     submission_format: [{ type: 'link' }],
     content_categories: [{ name: 'web3' }],
     country: [{ code: 'BR', name: 'Brasil' }],
-    official_links: [{ label: 'NIDO', url: 'https://bounties.work' }],
-    support_contact: [{ type: 'email', value: 'demo@nido.demo' }],
+    official_links: [{ label: 'NIDO', url: 'https://nido.global' }],
+    support_contact: [{ type: 'email', value: 'support@nido.global' }],
     tiers: [
       { name: '1º lugar', payment_amount: 30, spots: 1 },
       { name: '2º lugar', payment_amount: 20, spots: 1 },

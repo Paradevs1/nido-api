@@ -1,4 +1,4 @@
-# Bounties API
+# NIDO API
 
 A modern REST API built with Node.js, TypeScript, Express and MongoDB for managing bounties and campaigns. This API provides a complete platform for hosts to create and manage marketing campaigns, and for creators to participate in these campaigns through submissions and community engagement.
 

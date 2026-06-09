@@ -5,12 +5,12 @@ const options: Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Bounties API',
-      version: '1.0.0',
-      description: 'API REST para gerenciamento de bounties (recompensas por tarefas)',
+      title: 'NIDO API',
+      version: '2.0.0',
+      description: 'NIDO — plataforma B2B de campanhas com escrow trustless sobre Stellar L1',
       contact: {
-        name: 'API Support',
-        email: 'support@bounties.com'
+        name: 'NIDO Support',
+        email: 'support@nido.global'
       },
       license: {
         name: 'ISC',

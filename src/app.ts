@@ -137,7 +137,7 @@ export const paymentLimiter = rateLimit({
 if (process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'qa') {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Bounties API Documentation',
+    customSiteTitle: 'NIDO API Documentation',
     swaggerOptions: {
       persistAuthorization: true,
       displayRequestDuration: true,
@@ -185,8 +185,8 @@ if (process.env['DEMO_LOGIN_ENABLED'] === 'true') app.use('/api/demo', authLimit
 
 app.get('/', (req: Request, res: Response) => {
   const response: any = {
-    message: 'Bounties API is working!',
-    version: '1.0.0',
+    message: 'NIDO API is running',
+    version: '2.0.0',
     endpoints: {
       auth: '/api/auth',
       creator: '/api/creator',
@@ -242,7 +242,7 @@ app.get('/health', (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env['NODE_ENV'] || 'development',
-    version: '1.0.0'
+    version: '2.0.0'
   });
 });
 
