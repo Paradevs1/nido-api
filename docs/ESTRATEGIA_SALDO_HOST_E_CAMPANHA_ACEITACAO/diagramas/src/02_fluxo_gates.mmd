@@ -1,0 +1,23 @@
+flowchart TD
+    A([Creator ve campanha publica por aceitacao]) --> B[Creator SOLICITA entrada]
+    B --> C{{GATE 1 - Host decide a ENTRADA}}
+    C -->|Recusa| C1([REJECTED - fim - nada reservado])
+    C -->|Aceita e define valor Y dentro do range| D[ACCEPTED<br/>RESERVA Y no saldo do Host]
+
+    D --> E{Creator quer participar?}
+    E -->|Nao / desiste| E1([WITHDRAWN - libera reserva])
+    E -->|Sim| F[PARTICIPATING<br/>creator produz e SUBMETE]
+
+    F --> G{Submeteu no prazo?}
+    G -->|Nao| G1([EXPIRED - libera reserva])
+    G -->|Sim| H[SUBMITTED<br/>conteudo aguardando avaliacao]
+
+    H --> I{{GATE 2 - Host AVALIA O CONTEUDO}}
+    I -->|Aprova| J([APPROVED<br/>PAGA Y ao creator + fee Nido])
+    I -->|Recusa| K([DECLINED<br/>NAO paga - libera reserva ao Host])
+
+    style C fill:#fde68a,stroke:#b45309,color:#000
+    style I fill:#fde68a,stroke:#b45309,color:#000
+    style J fill:#bbf7d0,stroke:#15803d,color:#000
+    style K fill:#fecaca,stroke:#b91c1c,color:#000
+    style D fill:#e0e7ff,stroke:#4338ca,color:#000

@@ -1,0 +1,26 @@
+flowchart TD
+    START([inicio]) --> REQ[REQUESTED<br/>creator solicitou entrada]
+
+    REQ -->|recusa| REJ[REJECTED]
+    REQ -->|GATE 1: aceita| ACC[ACCEPTED<br/>valor definido no range<br/>RESERVA o valor]
+
+    ACC -->|desiste| WD[WITHDRAWN<br/>libera reserva]
+    ACC -->|participa| PART[PARTICIPATING<br/>produz conteudo]
+
+    PART -->|prazo expira| EXP[EXPIRED<br/>libera reserva]
+    PART -->|submete| SUB[SUBMITTED<br/>aguardando avaliacao]
+
+    SUB -->|GATE 2: aprova| APP[APPROVED<br/>PAGA o creator]
+    SUB -->|GATE 2: recusa| DEC[DECLINED<br/>NAO paga<br/>libera reserva]
+
+    classDef pay fill:#bbf7d0,stroke:#15803d,color:#000;
+    classDef nopay fill:#fecaca,stroke:#b91c1c,color:#000;
+    classDef reserve fill:#e0e7ff,stroke:#4338ca,color:#000;
+    classDef gate fill:#fde68a,stroke:#b45309,color:#000;
+    classDef neutral fill:#fef3c7,stroke:#92400e,color:#000;
+
+    class ACC reserve;
+    class SUB gate;
+    class APP pay;
+    class DEC,REJ,WD,EXP nopay;
+    class REQ,PART,START neutral;

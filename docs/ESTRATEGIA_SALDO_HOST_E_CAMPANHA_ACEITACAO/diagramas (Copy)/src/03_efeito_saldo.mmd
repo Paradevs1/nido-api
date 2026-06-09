@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph SALDO["Saldo do Host (ledger)"]
+        AV[available]
+        RES[reserved]
+    end
+
+    DEP[Deposito on-chain] -->|+| AV
+    AV -->|GATE 1 aceita: reserve Y| RES
+    RES -->|GATE 2 aprova: payout Y ao creator| OUT([Wallet do Creator])
+    RES -->|GATE 2 recusa / desiste / expira: release Y| AV
+    AV -->|Saque| WALLET([Wallet propria do Host])
+
+    style OUT fill:#bbf7d0,stroke:#15803d,color:#000
+    style WALLET fill:#e0e7ff,stroke:#4338ca,color:#000
+    style AV fill:#dbeafe,stroke:#1d4ed8,color:#000
+    style RES fill:#fde68a,stroke:#b45309,color:#000

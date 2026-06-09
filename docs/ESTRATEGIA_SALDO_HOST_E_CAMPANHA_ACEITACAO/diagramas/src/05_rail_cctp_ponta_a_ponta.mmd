@@ -1,0 +1,46 @@
+flowchart TD
+    subgraph ORIGEM["1. ORIGEM - chain do Host (USDC nativo)"]
+        H[Host queima USDC<br/>burn assinado pela wallet do Host]
+    end
+
+    subgraph CIRCLE["2. CIRCLE CCTP V2"]
+        IRIS[Iris atesta o burn<br/>maxFee=0 / standard finality]
+    end
+
+    subgraph RELAY["3. RELAY (Nido) - permissionless"]
+        CRON[runPendingInboundMints<br/>= depositWatcher]
+        FWD[mint_and_forward no Forwarder Soroban<br/>dominio 27 / treasury paga so a taxa BASE_FEE]
+    end
+
+    subgraph LEDGER["4. LEDGER custodial (Mongo - 0 custo on-chain)"]
+        CREDIT[WalletService.credit<br/>lancamento DEPOSIT]
+        AV[available + Y]
+    end
+
+    subgraph USO["5. USO do saldo (100% interno)"]
+        RES[GATE 1 aceita: reserve<br/>available to reserved]
+        PAY[GATE 2 aprova: payout<br/>reserved to wallet do creator]
+        REL[GATE 2 recusa/expira: release<br/>reserved to available]
+        WD[Saque: available to wallet do Host]
+    end
+
+    H -->|on-chain| IRIS
+    IRIS -->|atestacao pronta| CRON
+    CRON --> FWD
+    FWD -->|USDC chega na conta de deposito| CREDIT
+    CREDIT --> AV
+    AV --> RES
+    RES --> PAY
+    RES --> REL
+    REL --> AV
+    AV --> WD
+
+    classDef onchain fill:#fde68a,stroke:#b45309,color:#000;
+    classDef offchain fill:#dbeafe,stroke:#1d4ed8,color:#000;
+    classDef pay fill:#bbf7d0,stroke:#15803d,color:#000;
+    classDef back fill:#ede9fe,stroke:#6d28d9,color:#000;
+
+    class H,IRIS,FWD onchain;
+    class CRON back;
+    class CREDIT,AV,RES,REL,WD offchain;
+    class PAY pay;

@@ -1,0 +1,35 @@
+sequenceDiagram
+    actor Creator
+    participant Nido as Nido (API + Ledger)
+    actor Host
+    participant Treasury as Treasury Nido (on-chain)
+
+    Note over Host,Nido: Host ja tem saldo depositado (available)
+
+    Creator->>Nido: solicitar entrada (POST applications)
+    Nido-->>Host: notificacao "novo creator solicitou"
+
+    rect rgb(253, 230, 138)
+    Note over Host: GATE 1 - decide a ENTRADA
+    Host->>Nido: aceitar + valor Y (no range)
+    Nido->>Nido: RESERVA Y (available -> reserved)
+    end
+    Nido-->>Creator: "aceito por Y, quer participar?"
+
+    Creator->>Nido: participar
+    Creator->>Nido: submeter conteudo
+    Nido-->>Host: "creator submeteu, avalie"
+
+    rect rgb(253, 230, 138)
+    Note over Host: GATE 2 - avalia o CONTEUDO
+    alt Conteudo aprovado
+        Host->>Nido: aprovar
+        Nido->>Treasury: payout Y -> wallet do Creator
+        Treasury-->>Creator: Y (menos fee Nido)
+        Nido-->>Creator: "pago!"
+    else Conteudo recusado
+        Host->>Nido: recusar (motivo)
+        Nido->>Nido: RELEASE Y (reserved -> available)
+        Nido-->>Creator: "nao aprovado - sem pagamento"
+    end
+    end
